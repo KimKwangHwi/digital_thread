@@ -21,7 +21,7 @@ MCP는 상위 루트 노드만 포함된 URI로 요청하지 않고, 항상 leaf
 
 @mcp.prompt(
     name="auto_expand_context",
-    description="불명확 요청에 대해 TORUS 데이터 모델 전체 하위 항목 확장"
+    description="불명확 요청에 대해 TORUS 데이터 모델 전체 하위 항목 확장" 
 )
 def auto_expand_context(user_request: str) -> str:
     return PROMPT_INJECTION + "\n\n[사용자 요청]\n" + user_request
