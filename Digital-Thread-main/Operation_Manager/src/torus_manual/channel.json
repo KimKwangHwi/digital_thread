@@ -1,0 +1,68 @@
+[
+    {
+        "path": "machine/channel/channelEnabled",
+        "type": "boolean",
+        "description": "해당 채널의 활성화 여부.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/toolAreaNumber",
+        "type": "integer",
+        "description": "해당 채널에서 사용 가능한 공구 영역의 식별 번호. 단계통 장비의 경우 디폴트로 1. FANUC에서는 공구 영역과 계통이 동일하기 때문에 channel과 toolArea가 같은 개념으로 사용. SIEMENS의 공구 영역의 개수는 계통 수와 동등하며, 공구 영역과 계통 간 1:다 관계가 성립. 하나의 공구 영역은 여러 개의 계통에 의해 참조될 수 있지만, 하나의 계통이 여러 개의 공구 영역을 참조하는 것은 불가능",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/numberOfAxes",
+        "type": "integer",
+        "description": "해당 채널에서 사용 가능한 축의 개수.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/numberOfSpindles",
+        "type": "integer",
+        "description": "해당 채널에서 사용 가능한 스핀들의 개수.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/alarmStatus",
+        "type": "integer",
+        "description": "채널의 알람 상태 (0: No alarm, 1: Alarm 등).",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/numberOfAlarms",
+        "type": "integer",
+        "description": "해당 채널에서 발생한 알람의 총 개수.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/operateMode",
+        "type": "integer",
+        "description": "공작기계의 운전 모드 (0: JOG, 1: MDI, 2: MEMORY 등).",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/numberOfWorkOffsets",
+        "type": "integer",
+        "description": "사용 가능한 공작물 좌표계의 개수.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/ncState",
+        "type": "integer",
+        "description": "CNC의 작동 상태 (0: Reset, 1: Stop, 2: Hold, 3: Start 등).",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/motionStatus",
+        "type": "integer",
+        "description": "장비의 현재 모션 상태 (1: Motion, 2: Dwell 등).",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/emergencyStatus",
+        "type": "integer",
+        "description": "비상 정지(Emergency) 상태 여부 (0: Not emergency, 1: Emergency).",
+        "required_params": "machine, channel"
+    }
+]

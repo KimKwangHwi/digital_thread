@@ -1,0 +1,74 @@
+[
+    {
+        "path": "machine/channel/spindle/spindleLoad",
+        "type": "number",
+        "description": "스핀들에 걸리는 부하.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/spindleOverride",
+        "type": "number",
+        "description": "스핀들 속도 오버라이드 비율.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/spindleLimit",
+        "type": "number",
+        "description": "최대 회전 속도 한계값.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/spindleEnabled",
+        "type": "boolean",
+        "description": "해당 스핀들의 사용 가능 여부.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/spindleCurrent",
+        "type": "number",
+        "description": "해당 스핀들의 전류 정보.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/spindleTemperature",
+        "type": "number",
+        "description": "해당 스핀들의 온도 정보.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/rpm/commandedSpeed",
+        "type": "number",
+        "description": "지령된 스핀들 회전 속도.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/rpm/actualSpeed",
+        "type": "number",
+        "description": "실제 측정된 스핀들 회전 속도.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/rpm/speedUnit",
+        "type": "integer",
+        "description": "속도 단위 (2: rpm, 3: mm/rev 등).",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/spindlePower/actualPowerConsumption",
+        "type": "number",
+        "description": "실 소비 전력의 적산값.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+        "path": "machine/channel/spindle/spindlePower/powerConsumption",
+        "type": "number",
+        "description": "소비 전력의 적산값.",
+        "required_params": "machine, channel, spindle"
+    },
+    {
+    "path": "machine/channel/spindle/spindlePower/regeneratedPower",
+    "type": "number",
+    "description": "회생 전력의 적산값.",
+    "required_params": "machine, channel, spindle"
+    }
+]

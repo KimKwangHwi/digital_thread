@@ -1,0 +1,32 @@
+[
+    {
+        "path": "machine/channel/workOffset/workOffsetValue",
+        "type": "array",
+        "description": "축별 오프셋 값. **workOffsetValue=l(l번째 축)**",
+        "required_params": "machine, channel, workOffset, workOffsetValue"
+    },
+    {
+        "path": "machine/channel/workOffset/workOffsetRotation",
+        "type": "array",
+        "description": "축별 오프셋 회전량 (SIEMENS 전용). **workOffsetRotation=l(l번째 축)**",
+        "required_params": "machine, channel, workOffset, workOffsetRotation"
+    },
+    {
+        "path": "machine/channel/workOffset/workOffsetScalingFactor",
+        "type": "array",
+        "description": "축별 오프셋 확장량 (SIEMENS 전용). **workOffsetScalingFactor=l(l번째 축)**",
+        "required_params": "machine, channel, workOffset, workOffsetScalingFactor"
+    },
+    {
+        "path": "machine/channel/workOffset/workOffsetMirroringEnabled",
+        "type": "array",
+        "description": "축별 미러링 활성화 여부 (SIEMENS 전용). **workOffsetMirroringEnabled=l(l번째 축)**",
+        "required_params": "machine, channel, workOffset, workOffsetMirroringEnabled"
+    },
+    {
+        "path": "machine/channel/workOffset/workOffsetFine",
+        "type": "array",
+        "description": "축별 오프셋 Fine 값 (SIEMENS 전용). **workOffsetFine=l(l번째 축)**",
+        "required_params": "machine, channel, workOffset, workOffsetFine"
+    }
+]

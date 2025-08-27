@@ -1,0 +1,32 @@
+[
+    {
+        "path": "machine/channel/alarm/alarmText",
+        "type": "string",
+        "description": "알람 상세 내용.",
+        "required_params": "machine, channel, alarm"
+    },
+    {
+        "path": "machine/channel/alarm/alarmCategory",
+        "type": "string",
+        "description": "알람 유형.",
+        "required_params": "machine, channel, alarm"
+    },
+    {
+        "path": "machine/channel/alarm/alarmNumber",
+        "type": "string",
+        "description": "알람 번호.",
+        "required_params": "machine, channel, alarm"
+    },
+    {
+        "path": "machine/channel/alarm/raisedTimeStamp",
+        "type": "string",
+        "description": "알람 발생 시각.",
+        "required_params": "machine, channel, alarm"
+    },
+    {
+        "path": "machine/channel/variable/userVariable",
+        "type": "number",
+        "description": "사용자 변수 값.",
+        "required_params": "machine, channel, variable"
+    }
+]

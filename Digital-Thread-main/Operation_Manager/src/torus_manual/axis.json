@@ -1,0 +1,140 @@
+[
+    {
+        "path": "machine/channel/axis/machinePosition",
+        "type": "number",
+        "description": "기계 좌표계 기준 현재 위치.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/workPosition",
+        "type": "number",
+        "description": "공작물 좌표계 기준 현재 위치.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/distanceToGo",
+        "type": "number",
+        "description": "지령 위치까지 남은 이동 거리.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/relativePosition",
+        "type": "number",
+        "description": "상대 좌표계 기준 현재 위치.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisName",
+        "type": "string",
+        "description": "절대 좌표계의 축 이름.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/relativeAxisName",
+        "type": "string",
+        "description": "상대 좌표계의 축 이름 (FANUC 전용).",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisLoad",
+        "type": "number",
+        "description": "축에 걸리는 부하.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisFeed",
+        "type": "number",
+        "description": "현재 축의 이송 속도.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisLimitPlus",
+        "type": "number",
+        "description": "'+' 방향 최대 이동 한계값.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisLimitMinus",
+        "type": "number",
+        "description": "'-' 방향 최대 이동 한계값.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/workAreaLimitPlus",
+        "type": "number",
+        "description": "작업 금지 영역 '+' 방향 한계값.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/workAreaLimitMinus",
+        "type": "number",
+        "description": "작업 금지 영역 '-' 방향 한계값.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/workAreaLimitPlusEnabled",
+        "type": "boolean",
+        "description": "작업 금지 영역 '+' 방향 활성화 여부.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/workAreaLimitMinusEnabled",
+        "type": "boolean",
+        "description": "작업 금지 영역 '-' 방향 활성화 여부.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisEnabled",
+        "type": "boolean",
+        "description": "해당 축의 사용 가능 여부.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/interlockEnabled",
+        "type": "boolean",
+        "description": "해당 축의 인터락 상태 여부.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/constantSurfaceSpeedControlEnabled",
+        "type": "boolean",
+        "description": "주속 일정 제어(CSS) 활성화 여부.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisCurrent",
+        "type": "number",
+        "description": "해당 축의 전류 정보.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/machineOrigin",
+        "type": "number",
+        "description": "기계 원점 좌표값.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisTemperature",
+        "type": "number",
+        "description": "해당 축의 온도 정보.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisPower/actualPowerConsumption",
+        "type": "number",
+        "description": "실 소비 전력의 적산값 (소비전력 - 회생전력).",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisPower/powerConsumption",
+        "type": "number",
+        "description": "소비 전력의 적산값.",
+        "required_params": "machine, channel, axis"
+    },
+    {
+        "path": "machine/channel/axis/axisPower/regeneratedPower",
+        "type": "number",
+        "description": "회생 전력의 적산값.",
+        "required_params": "machine, channel, axis"
+    }
+]

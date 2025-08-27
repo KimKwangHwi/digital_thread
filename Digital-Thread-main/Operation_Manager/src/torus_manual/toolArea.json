@@ -1,0 +1,513 @@
+[
+    {
+        "path": "machine/toolArea/toolAreaEnabled",
+        "type": "boolean",
+        "description": "해당 공구 영역 사용 가능 여부.",
+        "required_params": "machine, toolArea"
+    },
+    {
+        "path": "machine/toolArea/numberOfMagazines",
+        "type": "integer",
+        "description": "사용 가능한 매거진 개수.",
+        "required_params": "machine, toolArea"
+    },
+    {
+        "path": "machine/toolArea/numberOfRegisteredTools",
+        "type": "integer",
+        "description": "공구 영역에 등록된 총 공구 개수.",
+        "required_params": "machine, toolArea"
+    },
+    {
+        "path": "machine/toolArea/numberOfLoadedTools",
+        "type": "integer",
+        "description": "매거진에 탑재된 총 공구 개수.",
+        "required_params": "machine, toolArea"
+    },
+    {
+        "path": "machine/toolArea/numberOfToolGroups",
+        "type": "integer",
+        "description": "등록된 공구 그룹의 개수.",
+        "required_params": "machine, toolArea"
+    },
+    {
+        "path": "machine/toolArea/numberOfToolOffsets",
+        "type": "integer",
+        "description": "등록된 공구 오프셋의 개수.",
+        "required_params": "machine, toolArea"
+    },
+    {
+        "path": "machine/toolArea/magazine/magazineEnabled",
+        "type": "boolean",
+        "description": "해당 매거진 사용 가능 여부.",
+        "required_params": "machine, toolArea, magazine"
+    },
+    {
+        "path": "machine/toolArea/magazine/magazineName",
+        "type": "string",
+        "description": "매거진 이름 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, magazine"
+    },
+    {
+        "path": "machine/toolArea/magazine/numberOfRealLocations",
+        "type": "integer",
+        "description": "매거진의 물리적 포트(위치) 개수.",
+        "required_params": "machine, toolArea, magazine"
+    },
+    {
+        "path": "machine/toolArea/magazine/magazinePhysicalNumber",
+        "type": "integer",
+        "description": "매거진의 물리적 번호.",
+        "required_params": "machine, toolArea, magazine"
+    },
+    {
+        "path": "machine/toolArea/magazine/numberOfLoadedTools",
+        "type": "integer",
+        "description": "해당 매거진에 탑재된 공구 개수.",
+        "required_params": "machine, toolArea, magazine"
+    },
+    {
+        "path": "machine/toolArea/tools/locationNumber",
+        "type": "integer",
+        "description": "공구가 매거진에 탑재된 위치 번호.",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/toolName",
+        "type": "string",
+        "description": "공구 이름.",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/numberOfEdges",
+        "type": "integer",
+        "description": "공구 날의 총 개수.",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEnabled",
+        "type": "integer",
+        "description": "공구 영역 등록 및 매거진 탑재 여부.",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/magazineNumber",
+        "type": "integer",
+        "description": "공구가 탑재된 매거진 번호.",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/sisterToolNumber",
+        "type": "integer",
+        "description": "할당된 대체 공구 번호.",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/toolLifeUnit",
+        "type": "integer",
+        "description": "공구 수명 측정 단위 기준.",
+        "required_params": "machine, toolArea, tools, toolLifeUnit"
+    },
+    {
+        "path": "machine/toolArea/tools/toolGroupNumber",
+        "type": "array",
+        "description": "공구가 참조된 공구 그룹 번호 리스트.",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/toolUseOrderNumber",
+        "type": "integer",
+        "description": "그룹 내 공구 사용 순서 (FANUC 전용).",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/toolStatus",
+        "type": "integer",
+        "description": "공구의 사용 상태.",
+        "required_params": "machine, toolArea, tools"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/toolType",
+        "type": "integer",
+        "description": "공구 유형.",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/lengthOffsetNumber",
+        "type": "integer",
+        "description": "공구 길이 보정 식별 번호. **lengthOffsetNumber=m(m번째 공구 그룹)**",
+        "required_params": "machine, toolArea, tools, toolEdge, lengthOffsetNumber"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/edgeEnabled",
+        "type": "boolean",
+        "description": "공구 날 사용 가능 여부.",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/tipAngle",
+        "type": "number",
+        "description": "공구의 팁 각도.",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/holderAngle",
+        "type": "number",
+        "description": "공구 홀더 각도.",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/insertAngle",
+        "type": "number",
+        "description": "공구 인서트 각도.",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/insertWidth",
+        "type": "number",
+        "description": "인선 너비 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/insertLength",
+        "type": "number",
+        "description": "인선 길이 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/referenceDirectionHolderAngle",
+        "type": "number",
+        "description": "홀더 각도 참조 방향 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/directionOfSpindleRotation",
+        "type": "integer",
+        "description": "스핀들 회전 방향 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/numberOfTeeth",
+        "type": "integer",
+        "description": "공구 날 개수 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/locationNumber",
+        "type": "integer",
+        "description": "공구가 매거진에 탑재된 위치 번호.",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolName",
+        "type": "string",
+        "description": "공구 이름.",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/registerTools/numberOfEdges",
+        "type": "integer",
+        "description": "공구 날의 총 개수.",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEnabled",
+        "type": "integer",
+        "description": "공구 영역 등록 및 매거진 탑재 여부.",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/registerTools/magazineNumber",
+        "type": "integer",
+        "description": "공구가 탑재된 매거진 번호.",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/registerTools/sisterToolNumber",
+        "type": "integer",
+        "description": "할당된 대체 공구 번호.",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolLifeUnit",
+        "type": "integer",
+        "description": "공구 수명 측정 단위 기준.",
+        "required_params": "machine, toolArea, registerTools, toolLifeUnit"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolGroupNumber",
+        "type": "array",
+        "description": "공구가 참조된 공구 그룹 번호 리스트.",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolUseOrderNumber",
+        "type": "integer",
+        "description": "그룹 내 공구 사용 순서 (FANUC 전용).",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolStatus",
+        "type": "integer",
+        "description": "공구의 사용 상태.",
+        "required_params": "machine, toolArea, registerTools"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/geoLengthOffset",
+        "type": "number",
+        "description": "공구 길이 X 보정값. **geoLengthOffset=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, geoLengthOffset"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/wearLengthOffset",
+        "type": "number",
+        "description": "공구 길이 X 마모 보정값. **wearLengthOffset=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, wearLengthOffset"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/radiusOffsetNumber",
+        "type": "integer",
+        "description": "공구 반경 보정 식별 번호. **radiusOffsetNumber=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, radiusOffsetNumber"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/geoRadiusOffset",
+        "type": "number",
+        "description": "공구 반경 보정값. **geoRadiusOffset=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, geoRadiusOffset"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/wearRadiusOffset",
+        "type": "number",
+        "description": "공구 반경 마모 보정값. **wearRadiusOffset=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, wearRadiusOffset"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/geoLengthOffsetZ",
+        "type": "number",
+        "description": "공구 길이 Z 보정값. **geoLengthOffsetZ=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, geoLengthOffsetZ"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/wearLengthOffsetZ",
+        "type": "number",
+        "description": "공구 길이 Z 마모 보정값. **wearLengthOffsetZ=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, wearLengthOffsetZ"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/geoLengthOffsetY",
+        "type": "number",
+        "description": "공구 길이 Y 보정값. **geoLengthOffsetY=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, geoLengthOffsetY"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/wearLengthOffsetY",
+        "type": "number",
+        "description": "공구 길이 Y 마모 보정값. **wearLengthOffsetY=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, wearLengthOffsetY"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/geoOffsetNumber",
+        "type": "integer",
+        "description": "길이 X,Z, 반경의 식별 번호. **geoOffsetNumber=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, geoOffsetNumber"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/wearOffsetNumber",
+        "type": "integer",
+        "description": "길이 X,Z, 반경 마모값의 식별 번호. **wearOffsetNumber=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, wearOffsetNumber"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/cuttingEdgePosition",
+        "type": "integer",
+        "description": "공구 인선 방향. **cuttingEdgePosition=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, cuttingEdgePosition"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/toolLife/maxToolLife",
+        "type": "number",
+        "description": "최대 공구 수명. **maxToolLife = m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, maxToolLife"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/toolLife/restToolLife",
+        "type": "number",
+        "description": "잔여 공구 수명. **restToolLife = m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, restToolLife"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/toolLife/toolLifeCount",
+        "type": "number",
+        "description": "현재 공구 사용량. **toolLifeCount = m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, tools, toolEdge, toolLifeCount"
+    },
+    {
+        "path": "machine/toolArea/tools/toolEdge/toolLife/toolLifeAlarm",
+        "type": "number",
+        "description": "공구 수명 도달 경고 설정값.",
+        "required_params": "machine, toolArea, tools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/toolType",
+        "type": "integer",
+        "description": "공구 유형.",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/lengthOffsetNumber",
+        "type": "integer",
+        "description": "공구 길이 보정 식별 번호. **lengthOffsetNumber=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, lengthOffsetNumber"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/geoLengthOffset",
+        "type": "number",
+        "description": "공구 길이 X 보정값. **geoLengthOffset=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, geoLengthOffset"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/wearLengthOffset",
+        "type": "number",
+        "description": "공구 길이 X 마모 보정값. **wearLengthOffset=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, wearLengthOffset"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/radiusOffsetNumber",
+        "type": "integer",
+        "description": "공구 반경 보정 식별 번호. **radiusOffsetNumber=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, radiusOffsetNumber"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/geoRadiusOffset",
+        "type": "number",
+        "description": "공구 반경 보정값. **geoRadiusOffset=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, geoRadiusOffset"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/wearRadiusOffset",
+        "type": "number",
+        "description": "공구 반경 마모 보정값. **wearRadiusOffset=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, wearRadiusOffset"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/edgeEnabled",
+        "type": "boolean",
+        "description": "공구 날 사용 가능 여부.",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/geoLengthOffsetZ",
+        "type": "number",
+        "description": "공구 길이 Z 보정값. **geoLengthOffsetZ=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, geoLengthOffsetZ"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/wearLengthOffsetZ",
+        "type": "number",
+        "description": "공구 길이 Z 마모 보정값. **wearLengthOffsetZ=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, wearLengthOffsetZ"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/geoLengthOffsetY",
+        "type": "number",
+        "description": "공구 길이 Y 보정값. **geoLengthOffsetY=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, geoLengthOffsetY"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/wearLengthOffsetY",
+        "type": "number",
+        "description": "공구 길이 Y 마모 보정값. **wearLengthOffsetY=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, wearLengthOffsetY"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/geoOffsetNumber",
+        "type": "integer",
+        "description": "길이 X,Z, 반경의 식별 번호. **geoOffsetNumber=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, geoOffsetNumber"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/wearOffsetNumber",
+        "type": "integer",
+        "description": "길이 X,Z, 반경 마모값의 식별 번호. **wearOffsetNumber=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, wearOffsetNumber"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/cuttingEdgePosition",
+        "type": "integer",
+        "description": "공구 인선 방향. **cuttingEdgePosition=m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, cuttingEdgePosition"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/tipAngle",
+        "type": "number",
+        "description": "공구의 팁 각도.",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/holderAngle",
+        "type": "number",
+        "description": "공구 홀더 각도.",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/insertAngle",
+        "type": "number",
+        "description": "공구 인서트 각도.",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/insertWidth",
+        "type": "number",
+        "description": "인선 너비 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/insertLength",
+        "type": "number",
+        "description": "인선 길이 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/referenceDirectionHolderAngle",
+        "type": "number",
+        "description": "홀더 각도 참조 방향 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/directionOfSpindleRotation",
+        "type": "integer",
+        "description": "스핀들 회전 방향 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/numberOfTeeth",
+        "type": "integer",
+        "description": "공구 날 개수 (SIEMENS 전용).",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    }, 
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/toolLife/maxToolLife",
+        "type": "number",
+        "description": "최대 공구 수명. **maxToolLife = m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, maxToolLife"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/toolLife/restToolLife",
+        "type": "number",
+        "description": "잔여 공구 수명. **restToolLife = m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, restToolLife"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/toolLife/toolLifeCount",
+        "type": "number",
+        "description": "현재 공구 사용량. **toolLifeCount = m : m번째 공구 그룹**",
+        "required_params": "machine, toolArea, registerTools, toolEdge, toolLifeCount"
+    },
+    {
+        "path": "machine/toolArea/registerTools/toolEdge/toolLife/toolLifeAlarm",
+        "type": "number",
+        "description": "공구 수명 도달 경고 설정값.",
+        "required_params": "machine, toolArea, registerTools, toolEdge"
+    }
+
+]

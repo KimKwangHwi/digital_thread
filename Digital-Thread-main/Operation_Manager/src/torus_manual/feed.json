@@ -1,0 +1,32 @@
+[
+    {
+        "path": "machine/channel/feed/feedOverride",
+        "type": "number",
+        "description": "가공 이송 속도 오버라이드 비율.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/feed/rapidOverride",
+        "type": "number",
+        "description": "급속 이송 속도 오버라이드 비율.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/feed/feedRate/commandedSpeed",
+        "type": "number",
+        "description": "지령된 이송 속도.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/feed/feedRate/actualSpeed",
+        "type": "number",
+        "description": "실제 측정된 이송 속도.",
+        "required_params": "machine, channel"
+    },
+    {
+        "path": "machine/channel/feed/feedRate/speedUnit",
+        "type": "integer",
+        "description": "속도 단위 (0: mm/min, 1: inch/min 등).",
+        "required_params": "machine, channel"
+    }
+]

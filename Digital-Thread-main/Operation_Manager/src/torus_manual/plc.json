@@ -1,0 +1,62 @@
+[
+    {
+        "path": "machine/pic/memory/rbitBlock",
+        "type": "array",
+        "description": "읽기 전용 Bit 데이터 블록. **rbitBlock=j(j번째 주소)**",
+        "required_params": "machine, rbitBlock"
+    },
+    {
+        "path": "machine/pic/memory/bitBlock",
+        "type": "array",
+        "description": "읽기/쓰기 가능 Bit 데이터 블록. **bitBlock=j(j번째 주소)**",
+        "required_params": "machine, bitBlock"
+    },
+    {
+        "path": "machine/pic/memory/rbyteBlock",
+        "type": "array",
+        "description": "읽기 전용 Byte 데이터 블록. **rbyteBlock=j(j번째 주소)**",
+        "required_params": "machine, rbyteBlock"
+    },
+    {
+        "path": "machine/pic/memory/byteBlock",
+        "type": "array",
+        "description": "읽기/쓰기 가능 Byte 데이터 블록. **byteBlock=j(j번째 주소)**",
+        "required_params": "machine, byteBlock"
+    },
+    {
+        "path": "machine/pic/memory/rwordBlock",
+        "type": "array",
+        "description": "읽기 전용 Word(2byte) 데이터 블록. **rwordBlock=j(j번째 주소)**",
+        "required_params": "machine, rwordBlock"
+    },
+    {
+        "path": "machine/pic/memory/wordBlock",
+        "type": "array",
+        "description": "읽기/쓰기 가능 Word(2byte) 데이터 블록. **wordBlock=j(j번째 주소)**",
+        "required_params": "machine, wordBlock"
+    },
+    {
+        "path": "machine/pic/memory/rdwordBlock",
+        "type": "array",
+        "description": "읽기 전용 DWord(4byte) 데이터 블록. **rdwordBlock=j(j번째 주소)**",
+        "required_params": "machine, rdwordBlock"
+    },
+    {
+        "path": "machine/pic/memory/dwordBlock",
+        "type": "array",
+        "description": "읽기/쓰기 가능 DWord(4byte) 데이터 블록. **dwordBlock=j(j번째 주소)**",
+        "required_params": "machine, dwordBlock"
+    },
+    {
+        "path": "machine/pic/memory/rqwordBlock",
+        "type": "array",
+        "description": "읽기 전용 QWord(8byte) 데이터 블록. **rqwordBlock=j(j번째 주소)**",
+        "required_params": "machine, rqwordBlock"
+    },
+    {
+        "path": "machine/pic/memory/qwordBlock",
+        "type": "array",
+        "description": "읽기/쓰기 가능 QWord(8byte) 데이터 블록. **qwordBlock=j(j번째 주소)**",
+        "required_params": "machine, qwordBlock"
+    }
+]

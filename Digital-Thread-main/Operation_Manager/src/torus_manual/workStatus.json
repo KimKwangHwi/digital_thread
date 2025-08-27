@@ -1,0 +1,44 @@
+[
+    {
+        "path": "machine/channel/workStatus/workCounter/currentWorkCounter",
+        "type": "integer",
+        "description": "현재까지 가공한 수량.",
+        "required_params": "machine, channel, workStatus"
+    },
+    {
+        "path": "machine/channel/workStatus/workCounter/targetWorkCounter",
+        "type": "integer",
+        "description": "목표 가공 수량.",
+        "required_params": "machine, channel, workStatus"
+    },
+    {
+        "path": "machine/channel/workStatus/workCounter/totalWorkCounter",
+        "type": "integer",
+        "description": "총 가공 수량.",
+        "required_params": "machine, channel, workStatus"
+    },
+    {
+        "path": "machine/channel/workStatus/machiningTime/processingMachiningTime",
+        "type": "number",
+        "description": "현재 가공이 진행된 시간 (단위: 초).",
+        "required_params": "machine, channel, workStatus"
+    },
+    {
+        "path": "machine/channel/workStatus/machiningTime/estimatedMachiningTime",
+        "type": "number",
+        "description": "예상 남은 가공 완료 시간 (SIEMENS 전용).",
+        "required_params": "machine, channel, workStatus"
+    },
+    {
+        "path": "machine/channel/workStatus/machiningTime/machineOperationTime",
+        "type": "number",
+        "description": "자동 운전 모드에서의 총 운전 시간 (단위: 초).",
+        "required_params": "machine, channel, workStatus"
+    },
+    {
+        "path": "machine/channel/workStatus/machiningTime/actualCuttingTime",
+        "type": "number",
+        "description": "실제 총 절삭 시간 (단위: 초).",
+        "required_params": "machine, channel, workStatus"
+    }
+]

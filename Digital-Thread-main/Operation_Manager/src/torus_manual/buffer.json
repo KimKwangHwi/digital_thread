@@ -1,0 +1,98 @@
+[
+    {
+        "path": "machine/buffer/bufferEnabled",
+        "type": "boolean",
+        "description": "해당 버퍼 사용 가능 여부.",
+        "required_params": "machine, buffer"
+    },
+    {
+        "path": "machine/buffer/numberOfStream",
+        "type": "integer",
+        "description": "해당 버퍼의 최대 스트림 개수.",
+        "required_params": "machine, buffer"
+    },
+    {
+        "path": "machine/buffer/statusOfStream",
+        "type": "integer",
+        "description": "스트림 상태 (0: 설정 가능, 3: 수집 중 등).",
+        "required_params": "machine, buffer"
+    },
+    {
+        "path": "machine/buffer/modOfStream",
+        "type": "integer",
+        "description": "스트림 수집 모드 (0: 반복 수집, 1: 1회 수집).",
+        "required_params": "machine, buffer"
+    },
+    {
+        "path": "machine/buffer/machineChannelOfStream",
+        "type": "integer",
+        "description": "스트림 수집 시 사용할 채널.",
+        "required_params": "machine, buffer"
+    },
+    {
+        "path": "machine/buffer/periodOfStream",
+        "type": "integer",
+        "description": "1회 수집 기간 (단위: ms).",
+        "required_params": "machine, buffer"
+    },
+    {
+        "path": "machine/buffer/triggerOfStream",
+        "type": "integer",
+        "description": "수집 시작 트리거 (0: 즉시, 1이상: 시퀀스 번호).",
+        "required_params": "machine, buffer"
+    },
+    {
+        "path": "machine/buffer/frequencyOfStream",
+        "type": "integer",
+        "description": "모든 스트림에 공통으로 적용할 수집 주파수 (Hz).",
+        "required_params": "machine, buffer"
+    },
+    {
+        "path": "machine/buffer/stream/streamEnabled",
+        "type": "boolean",
+        "description": "해당 스트림 사용 가능 여부.",
+        "required_params": "machine, buffer, stream"
+    },
+    {
+        "path": "machine/buffer/stream/streamFrequency",
+        "type": "integer",
+        "description": "해당 스트림의 수집 주파수 (Hz).",
+        "required_params": "machine, buffer, stream"
+    },
+    {
+        "path": "machine/buffer/stream/streamCategory",
+        "type": "integer",
+        "description": "수집 대상 데이터 카테고리.",
+        "required_params": "machine, buffer, stream"
+    },
+    {
+        "path": "machine/buffer/stream/streamSubcategory",
+        "type": "integer",
+        "description": "수집 대상 데이터 서브카테고리 (축/스핀들 번호 등).",
+        "required_params": "machine, buffer, stream"
+    },
+    {
+        "path": "machine/buffer/stream/streamType",
+        "type": "integer",
+        "description": "수집 유형 (KCNC 전용).",
+        "required_params": "machine, buffer, stream"
+    },
+    {
+        "path": "machine/buffer/stream/streamStartBit",
+        "type": "integer",
+        "description": "수집 유형이 Bit일 때 Start Bit (KCNC 전용).",
+        "required_params": "machine, buffer, stream"
+    },
+    {
+        "path": "machine/buffer/stream/streamEndBit",
+        "type": "integer",
+        "description": "수집 유형이 Bit일 때 End Bit (KCNC 전용).",
+        "required_params": "machine, buffer, stream"
+    },
+    {
+        "path": "machine/buffer/stream/value",
+        "type": "number",
+        "description": "해당 스트림에서 마지막으로 수집된 데이터 값.",
+        "required_params": "machine, buffer, stream"
+    }
+]
