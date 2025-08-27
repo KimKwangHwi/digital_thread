@@ -26,7 +26,8 @@ class ExceptionEnum(Enum):
         self.status_code = status_code
 
 class CustomException(Exception):
-    def __init__(self, exception_enum: ExceptionEnum, detail: str = None):
+    def __init__(self, exception_enum: ExceptionEnum, detail: str = None, error_info: dict = None):
         self.name = exception_enum.detail
         self.detail = detail
+        self.error_info = error_info  # 새로 추가
         self.status_code = exception_enum.status_code

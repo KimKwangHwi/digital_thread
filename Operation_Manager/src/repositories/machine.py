@@ -37,22 +37,41 @@ class MachineRepository:
         
         :param endpoint: base_url 뒤에 붙는 API 경로 (예: '/machine/list')
         :param params: 요청 파라미터 (dict)
-        :raises CustomException: API 호출 실패 또는 상태 오류 시
+        :raises CustomException: API 호출 실패 또는 상태 오류 시 (error_info 포함)
         :return: 응답 데이터의 value 필드 또는 전체 json
         """
         try:
             url = f"{self.base_url}{endpoint}"
             async with httpx.AsyncClient(verify=False) as client:
                 response = await client.get(url, params=params)
-                response.raise_for_status()
                 data = response.json()
+            
                 status = data.get("status", 0)
-                if status != 0:
-                    raise CustomException(ExceptionEnum.EXTERNAL_REQUEST_ERROR)
-                return data.get("value", data)
+            
+                if status == 0:
+                # 성공 시 기존처럼 데이터만 반환
+                    return data.get("value", data)
+                else:
+                # 에러 시 에러 정보가 포함된 특별한 객체 반환
+                    return {
+                        "__error__": True,
+                        "status": status,
+                        "status_hex": hex(status),
+                        "message": data.get('message', 'No message'),
+                        "endpoint": endpoint,
+                        "params": params,
+                        "full_api_response": data
+                    }
+                
         except Exception as e:
-            raise CustomException(ExceptionEnum.EXTERNAL_REQUEST_ERROR, detail=str(e))
-
+            return {
+               "__error__": True,
+               "status": -1,
+               "message": f"HTTP/Connection Error: {str(e)}",
+               "exception_type": type(e).__name__,
+               "endpoint": endpoint,
+               "params": params
+            }
 
     async def get_nc_root_path(self, machine_id: int):
         """

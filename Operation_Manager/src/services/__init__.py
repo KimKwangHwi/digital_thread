@@ -1,5 +1,6 @@
 from src.services.project import ProjectService
 from src.services.machine import MachineService
+
 from src.repositories import (
     ProjectRepository, FileRepository, RedisRepository, MachineLogRepository, MachineRepository,
     get_log_repository, get_file_repository, get_machine_repository, get_project_repository, get_redis_repository
@@ -26,3 +27,4 @@ async def get_machine_service():
     log_repo: MachineLogRepository = await get_log_repository()
     redis_repo: RedisRepository = await get_redis_repository()
     return MachineService(machine_repo, file_repo, log_repo, redis_repo)
+

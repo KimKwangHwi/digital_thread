@@ -1,8 +1,11 @@
 import asyncio
 from datetime import datetime
 import re
+from typing import Dict
 import os
+from pathlib import Path
 import uuid
+import json
 import logging
 from src.repositories import MachineRepository, FileRepository, MachineLogRepository, RedisRepository
 from src.schemas.machine import (
@@ -10,6 +13,8 @@ from src.schemas.machine import (
 )
 from src.utils.exceptions import CustomException, ExceptionEnum
 import logging
+
+ERROR_STATUS_FILE_PATH = Path(__file__).resolve().parent.parent / "error_status.json"
 
 class MachineService:
     """
@@ -33,25 +38,6 @@ class MachineService:
         self.file_repo = file_repo
         self.log_repo = log_repo
         self.job_tracker = job_tracker
-
-    async def get_machine_list(self) -> MachineListResponse:
-        """
-        현재 시스템에 등록된 모든 장비 정보를 반환.
-        :return: MachineListResponse (장비 목록)
-        """
-        raw_list = await self.machine_repo.get_machine_list()
-        machines = [MachineInfo(**item) for item in raw_list]
-        return MachineListResponse(machines=machines)
-
-    async def get_machine_data(self, endpoint: str, params: dict = None):
-        """
-        임의의 endpoint로부터 데이터를 조회합니다. LLM tool 호출 가능.
-        
-        :param endpoint: base_url 뒤에 붙는 경로 (예: "/machine/list")
-        :param params: GET 요청에 사용할 쿼리 파라미터
-        :return: 응답 데이터 value 또는 전체 json
-        """
-        return await self.machine_repo.get_data(endpoint, params)
 
     async def upload_torus_file(self, project_id: str, machine_id: int, file_id: str) -> MachineFileUploadResponse:
         """
@@ -100,14 +86,6 @@ class MachineService:
             ncpath=project_folder_path
         )
 
-    async def get_machine_status(self, machine_id: int) -> MachineProgramStatusResponse:
-        """
-        장비의 현재 가공 상태(프로그램 모드) 조회.
-        :param machine_id: 장비 ID
-        :return: MachineProgramStatusResponse (mode)
-        """
-        program_mode = await self.machine_repo.get_machine_status(machine_id)
-        return MachineProgramStatusResponse(programMode=program_mode)
 
     async def track_all_machines_forever(self):
         """
@@ -226,3 +204,736 @@ class MachineService:
                 if op["index"] == index and op["end_time"] is None:
                     op["end_time"] = datetime.now()
                     break
+ 
+
+    # ======================================================================
+    
+    async def get_machine_list(self) -> MachineListResponse:
+        """
+        현재 시스템에 등록된 모든 장비 정보를 반환.
+        :return: MachineListResponse (장비 목록)
+        """
+        raw_list = await self.machine_repo.get_machine_list()
+        machines = [MachineInfo(**item) for item in raw_list]
+        return MachineListResponse(machines=machines)
+
+    
+    async def get_machine_data(self, endpoint: str, params: dict = None):
+        
+        """
+        장비의 상태 및 기본 정보를 조회합니다.
+
+        endpoint 형식:
+        • 일반 정보: /machine/{leaf_node}
+        • NC 메모리 정보: /machine/ncMemory/{leaf_node}
+
+        필수 파라미터: machine=i
+
+        === 일반 장비 정보 ===
+        • cncModel - 해당 장비에 탑재된 NC의 모델명(STRING)
+        • numberOfChannels - 장비에서 사용 가능한 채널(계통)의 개수(INTEGER)
+        • cncVendor - NC 제조사 코드 (1: FANUC, 2: SIEMENS 등)(INTEGER)
+        • ncLinkState - NC와의 통신 가능 여부(BOOLEAN)
+        • currentAccessLevel - 프로그램/디렉토리 접근 권한 수준 (SIEMENS 전용)(INTEGER)
+        • basicLengthUnit - 장비가 사용하는 기본 길이 단위 (0: Metric, 1: Inches 등)(INTEGER)
+        • machinePowerOnTime - 장비의 전원이 켜진 시간 (단위: 분)(REAL)
+        • currentCncTime - 장비에 설정된 현재 시각 (형식: yyyy-MM-ddTHH:mm:ss)(STRING)
+        • machineType - 장비의 타입 (0: 알 수 없음, 1: Milling, 2: Lathe 등)(INTEGER)
+
+        === NC 메모리 정보 ===
+        • ncMemory/totalCapacity - NC 메모리의 전체 용량 (단위: byte)(REAL)
+        • ncMemory/usedCapacity - 사용 중인 NC 메모리 용량 (단위: byte)(REAL)
+        • ncMemory/freeCapacity - NC 메모리의 남은 용량 (단위: byte)(REAL)
+        • ncMemory/rootPath - NC 메모리의 기본(루트) 경로(STRING)
+
+        예시:
+        - endpoint="/machine/cncModel"
+        - endpoint="/machine/ncMemory/freeCapacity"
+        - params= {"machine": 1}
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+
+    async def get_channel_data(self, endpoint: str, params: dict = None):
+        
+        """
+        계통 별로 기록되는 채널의 상태 정보를 조회합니다. 리스트 구조입니다.
+    
+        endpoint 형식: /machine/channel/{leaf_node}
+        필수 파라미터: machine=i (i번째 장비), channel=j (j번째 채널)
+    
+        사용 가능한 leaf_node:
+        • channelEnabled  - 활성화 여부(BOOLEAN)
+        • toolAreaNumber  - 해당 채널에서 사용 가능한 공구 영역의 식별 번호. 단계통 장비의 경우 디폴트로 1. FANUC에서는 공구 영역과 계통이 동일하기 때문에 channel과 toolArea가 같은 개념으로 사용. SIEMENS의 공구 영역의 개수는 계통 수와 동등하며, 공구 영역과 계통 간 1:다 관계가 성립.(INTEGER)  
+        • numberOfAxes  - 해당 채널에서 사용 가능한 축의 개수(INTEGER)
+        • numberOfSpindles  - 해당 채널에서 사용 가능한 스핀들의 개수.(INTEGER)
+        • alarmStatus   - 채널의 알람 상태(INTEGER)
+        • numberOfAlarms   - 해당 채널에서 발생한 알람의 총 개수(INTEGER)  
+        • operateMode   - 공작기계의 운전 모드 (0: JOG, 1: MDI, 2: MEMORY 등)(INTEGER)
+        • numberOfWorkOffsets   - 사용 가능한 공작물 좌표계의 개수(INTEGER)
+        • ncState   - CNC의 작동 상태 (0: Reset, 1: Stop, 2: Hold, 3: Start 등)(INTEGER)
+        • motionStatus   - 장비의 현재 모션 상태 (1: Motion, 2: Dwell 등)(INTEGER)  
+        • emergencyStatus   - 상태 여부 (0: Not emergency, 1: Emergency)(INTEGER)
+   
+
+        예시: endpoint="/machine/channel/channelEnabled", params={"machine": 1, "channel": 1}
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    async def get_axis_data(self, endpoint: str, params: dict = None):
+        
+        """
+        축 별 상태 정보를 조회합니다. 
+    
+        endpoint 형식: 
+        • 일반 정보: /machine/channel/axis/{leaf_node}
+        • 전력 정보: /machine/channel/axis/axisPower/{leaf_node}
+        
+        필수 파라미터: machine=i (i번째 장비), channel=j (j번째 채널), axis=k (k번째 축)
+    
+         === 일반 축 정보 leaf_node ===
+        • machinePosition - 기계 좌표계 기준 현재 위치(REAL)
+        • workPosition - 공작물 좌표계 기준 현재 위치(REAL)
+        • distanceToGo - 지령 위치까지 남은 이동 거리(REAL)
+        • relativePosition - 상대 좌표계 기준 현재 위치(REAL)
+        • axisName - 절대 좌표계의 축 이름(STRING)
+        • relativeAxisName - 상대 좌표계의 축 이름 (FANUC 전용)(STRING)
+        • axisLoad - 축에 걸리는 부하(REAL)
+        • axisFeed - 현재 축의 이송 속도(REAL)
+        • axisLimitPlus - '+' 방향 최대 이동 한계값(REAL)
+        • axisLimitMinus - '-' 방향 최대 이동 한계값(REAL)
+        • workAreaLimitPlus - 작업 금지 영역 '+' 방향 한계값(REAL)
+        • workAreaLimitMinus - 작업 금지 영역 '-' 방향 한계값(REAL)
+        • workAreaLimitPlusEnabled - 작업 금지 영역 '+' 방향 활성화 여부(BOOLEAN)
+        • workAreaLimitMinusEnabled - 작업 금지 영역 '-' 방향 활성화 여부(BOOLEAN)
+        • axisEnabled - 해당 축의 사용 가능 여부(BOOLEAN)
+        • interlockEnabled - 해당 축의 인터락 상태 여부(BOOLEAN)
+        • constantSurfaceSpeedControlEnabled - 주속 일정 제어(CSS) 활성화 여부(BOOLEAN)
+        • axisCurrent - 해당 축의 전류 정보(REAL)
+        • machineOrigin - 기계 원점 좌표값(REAL)
+        • axisTemperature - 해당 축의 온도 정보(REAL)
+        
+        === 축 전력 정보 ===  
+        • axisPower/actualPowerConsumption - 실 소비 전력 적산값(REAL)
+        • axisPower/powerConsumption - 소비 전력 적산값(REAL)
+        • axisPower/regeneratedPower - 회생 전력 적산값(REAL)
+    
+        예시: endpoint="/machine/channel/axis/axisLoad", params={"machine": 1, "channel": 1, "axis": 1}
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+
+
+    async def get_spindle_data(self, endpoint: str, params: dict = None):
+        
+        """
+        스핀들 별 상태 정보를 조회합니다.
+
+        endpoint 형식:
+        • 일반 정보: /machine/channel/spindle/{leaf_node}
+        • RPM 정보: /machine/channel/spindle/rpm/{leaf_node}
+        • 전력 정보: /machine/channel/spindle/spindlePower/{leaf_node}
+
+        필수 파라미터: machine=i, channel=j, spindle=k
+
+        === 일반 스핀들 정보 ===
+        • spindleLoad - 스핀들에 걸리는 부하(REAL)
+        • spindleOverride - 스핀들 속도 오버라이드 비율(REAL)
+        • spindleLimit - 최대 회전 속도 한계값(REAL)
+        • spindleEnabled - 해당 스핀들의 사용 가능 여부(BOOLEAN)
+        • spindleCurrent - 해당 스핀들의 전류 정보(REAL)
+        • spindleTemperature - 해당 스핀들의 온도 정보(REAL)
+
+        === 스핀들 RPM 정보 ===
+        • rpm/commandedSpeed - 지령된 스핀들 회전 속도(REAL)
+        • rpm/actualSpeed - 실제 측정된 스핀들 회전 속도(REAL)
+        • rpm/speedUnit - 속도 단위 (2: rpm, 3: mm/rev 등)(INTEGER)
+
+        === 스핀들 전력 정보 ===
+        • spindlePower/actualPowerConsumption - 실 소비 전력의 적산값(REAL)
+        • spindlePower/powerConsumption - 소비 전력의 적산값(REAL)
+        • spindlePower/regeneratedPower - 회생 전력의 적산값(REAL)
+
+        예시:
+        - endpoint="/machine/channel/spindle/spindleLoad"
+        - endpoint="/machine/channel/spindle/rpm/actualSpeed"
+        - endpoint="/machine/channel/spindle/spindlePower/powerConsumption"
+        - params={"machine": 1, "channel": 1, "spindle": 1}
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+
+    
+    async def get_feed_data(self, endpoint: str, params: dict = None):
+        
+        """
+        축 이송 관련 정보를 조회합니다.
+
+        endpoint 형식:
+        • 오버라이드 정보: /machine/channel/feed/{leaf_node}
+        • 이송 속도 정보: /machine/channel/feed/feedRate/{leaf_node}
+
+        필수 파라미터: machine=i, channel=j
+
+        === 이송 오버라이드 정보 ===
+        • feedOverride - 가공 이송 속도 오버라이드 비율(REAL)
+        • rapidOverride - 급속 이송 속도 오버라이드 비율(REAL)
+
+        === 이송 속도 정보 ===
+        • feedRate/commandedSpeed - 지령된 이송 속도(REAL)
+        • feedRate/actualSpeed - 실제 측정된 이송 속도(REAL)
+        • feedRate/speedUnit - 속도 단위 (0: mm/min, 1: inch/min 등)(INTEGER)
+
+        예시:
+        - endpoint="/machine/channel/feed/feedOverride"
+        - endpoint="/machine/channel/feed/feedRate/actualSpeed"
+        - params={"machine": 1, "channel": 1}
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    
+    async def get_workStatus_data(self, endpoint: str, params: dict = None):
+        
+        """
+        가공 작업의 진척 상태 정보를 조회합니다.
+
+        endpoint 형식:
+        • 가공 수량 정보: /machine/channel/workStatus/workCounter/{leaf_node}
+        • 가공 시간 정보: /machine/channel/workStatus/machiningTime/{leaf_node}
+
+        필수 파라미터: machine=i, channel=j, workStatus=k (k번째 작업)
+
+        === 가공 수량 정보 ===
+        • workCounter/currentWorkCounter - 현재까지 가공한 수량(INTEGER)
+        • workCounter/targetWorkCounter - 목표 가공 수량(INTEGER)
+        • workCounter/totalWorkCounter - 총 가공 수량(INTEGER)
+
+        === 가공 시간 정보 ===
+        • machiningTime/processingMachiningTime - 현재 가공이 진행된 시간 (단위: 초)(REAL)
+        • machiningTime/estimatedMachiningTime - 예상 남은 가공 완료 시간 (SIEMENS 전용)(REAL)
+        • machiningTime/machineOperationTime - 자동 운전 모드에서의 총 운전 시간 (단위: 초)(REAL)
+        • machiningTime/actualCuttingTime - 실제 총 절삭 시간 (단위: 초)(REAL)
+
+        예시:
+        - endpoint="/machine/channel/workStatus/workCounter/currentWorkCounter"
+        - endpoint="/machine/channel/workStatus/machiningTime/processingMachiningTime"
+        - params={"machine": 1, "channel": 1}
+
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    
+    async def get_activeTool_data(self, endpoint: str, params: dict = None):
+        
+        """
+        현재 활성화된 공구의 상세 정보를 조회합니다.
+
+        endpoint 형식:
+        • 일반 정보: /machine/channel/activeTool/{leaf_node}
+        • 공구 날 정보: /machine/channel/activeTool/toolEdge/{leaf_node}
+        • 공구 수명 정보: /machine/channel/activeTool/toolEdge/toolLife/{leaf_node}
+
+        필수 파라미터: machine=i, channel=j
+
+        === 일반 공구 정보 ===
+        • locationNumber - 공구가 매거진에 탑재된 위치 번호(INTEGER)
+        • toolName - 공구 이름(STRING)
+        • toolNumber - 공구 식별 번호 (T 코드)(INTEGER)
+        • numberOfEdges - 공구 날의 총 개수(INTEGER)
+        • toolEnabled - 공구 영역 등록 및 매거진 탑재 여부(INTEGER)
+        • magazineNumber - 공구가 탑재된 매거진 번호(INTEGER)
+        • sisterToolNumber - 할당된 대체 공구 번호(INTEGER)
+        • toolLifeUnit - 공구 수명 측정 단위 기준(INTEGER)
+        • toolGroupNumber - 공구가 참조된 공구 그룹 번호 리스트(INTEGER)
+        • toolUseOrderNumber - 그룹 내 공구 사용 순서 (FANUC 전용)(INTEGER)
+        • toolStatus - 공구의 사용 상태(INTEGER)
+
+        === 공구 날(Edge) 정보 ===
+        • toolEdge/edgeNumber - 공구 날 식별 번호(INTEGER)
+        • toolEdge/toolType - 공구 유형(INTEGER)
+        • toolEdge/lengthOffsetNumber - 공구 길이 보정 식별 번호(INTEGER)
+        • toolEdge/geoLengthOffset - 공구 길이 X 보정값(REAL)
+        • toolEdge/wearLengthOffset - 공구 길이 X 마모 보정값(REAL)
+        • toolEdge/radiusOffsetNumber - 공구 반경 보정 식별 번호(INTEGER)
+        • toolEdge/geoRadiusOffset - 공구 반경 보정값(REAL)
+        • toolEdge/wearRadiusOffset - 공구 반경 마모 보정값(REAL)
+        • toolEdge/edgeEnabled - 공구 날 사용 가능 여부(BOOLEAN)
+        • toolEdge/geoLengthOffsetZ - 공구 길이 Z 보정값(REAL)
+        • toolEdge/wearLengthOffsetZ - 공구 길이 Z 마모 보정값(REAL)
+        • toolEdge/geoLengthOffsetY - 공구 길이 Y 보정값(REAL)
+        • toolEdge/wearLengthOffsetY - 공구 길이 Y 마모 보정값(REAL)
+        • toolEdge/geoOffsetNumber - 길이 X,Z, 반경의 식별 번호(INTEGER)
+        • toolEdge/wearOffsetNumber - 길이 X,Z, 반경 마모값의 식별 번호(INTEGER)
+        • toolEdge/cuttingEdgePosition - 공구 인선 방향(INTEGER)
+        • toolEdge/tipAngle - 공구의 팁 각도(REAL)
+        • toolEdge/holderAngle - 공구 홀더 각도(REAL)
+        • toolEdge/insertAngle - 공구 인서트 각도(REAL)
+        • toolEdge/insertWidth - 인선 너비 (SIEMENS 전용)(REAL)
+        • toolEdge/insertLength - 인선 길이 (SIEMENS 전용)(REAL)
+        • toolEdge/referenceDirectionHolderAngle - 홀더 각도 참조 방향 (SIEMENS 전용)(REAL)
+        • toolEdge/directionOfSpindleRotation - 스핀들 회전 방향 (SIEMENS 전용)(INTEGER)
+        • toolEdge/numberOfTeeth - 공구 날 개수 (SIEMENS 전용)(INTEGER)
+        
+        === 공구 수명 정보 ===
+        • toolEdge/toolLife/maxToolLife - 최대 공구 수명(REAL)
+        • toolEdge/toolLife/restToolLife - 잔여 공구 수명(REAL)
+        • toolEdge/toolLife/toolLifeCount - 현재 공구 사용량(REAL)
+        • toolEdge/toolLife/toolLifeAlarm - 공구 수명 도달 경고 설정값 (SIEMENS 전용)(REAL)
+
+        예시:
+        - params = {"machine": 1, "channel": 1}
+        - endpoint = "/machine/channel/activeTool/toolNumber"
+        
+        - params = {"machine": 1, "channel": 1}
+        - endpoint = "/machine/channel/activeTool/toolEdge/geoLengthOffset"
+
+        - params = {"machine": 1, "channel": 1}
+        - endpoint = "/machine/channel/activeTool/toolEdge/toolLife/restToolLife"
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    async def get_currentProgram_data(self, endpoint: str, params: dict = None):
+        
+        """
+        현재 실행 중인 NC 프로그램의 상태 정보를 조회합니다.
+
+        endpoint 형식:
+        • 일반 정보: /machine/channel/currentProgram/{leaf_node}
+        • 모달 정보: /machine/channel/currentProgram/modal/{leaf_node}
+        • 실행 블록 정보: /machine/channel/currentProgram/overallBlock/{leaf_node}
+        • 중단점 정보: /machine/channel/currentProgram/interruptBlock/{leaf_node}
+        • 좌표계 오프셋 정보: /machine/channel/currentProgram/currentTotalWorkOffset/{leaf_node}
+        • 현재 파일 정보: /machine/channel/currentProgram/currentFile/{leaf_node}
+        • 메인 파일 정보: /machine/channel/currentProgram/mainFile/{leaf_node}
+        • 제어 옵션 정보: /machine/channel/currentProgram/controlOption/{leaf_node}
+
+        필수 파라미터: machine=i, channel=j 와 아래 각 항목별 파라미터
+
+        === 일반 프로그램 정보 ===
+        • sequenceNumber - 현재 실행 중인 시퀀스 번호(N 코드)(INTEGER)
+        • currentBlockCounter - 실행 중인 블록 카운터(INTEGER)
+        • lastBlock - 이전 블록 정보(STRING)
+        • currentBlock - 현재 실행 중인 프로그램 블록 내용(STRING)
+        • nextBlock - 다음 블록 정보(STRING)
+        • activePartProgram - 실행 중인 프로그램 블록 정보(최대 200자)(STRING)
+        • programMode - 프로그램 실행 모드 (0: Reset, 3: Start 등)(INTEGER)
+        • currentWorkOffsetIndex - 현재 공작물 좌표계의 G 코드 인덱스(INTEGER)
+        • currentWorkOffsetCode - 현재 공작물 좌표계의 G 코드 문자열(STRING)
+        • currentDepthLevel - 현재 프로그램의 레벨 (메인, 서브루틴 등)(INTEGER)
+
+        === G 코드 모달 정보 ===
+        • modal/modalIndex - G 코드 인덱스 (필수 파라미터: modal=k)(INTEGER)
+        • modal/modalCode - G 코드 문자열 (필수 파라미터: modal=k)(STRING)
+
+        === 실행 블록 정보 (SIEMENS) ===
+        • overallBlock/blockCounter - 블록 카운터 (필수 파라미터: overallBlock=k)(INTEGER)
+        • overallBlock/programName - 프로그램 이름 (필수 파라미터: overallBlock=k)(STRING)
+
+        === 중단점 블록 정보 (SIEMENS) ===
+        • interruptBlock/depthLevel - 중단점 블록의 프로그램 레벨 (필수 파라미터: interruptBlock=k)(INTEGER)
+        • interruptBlock/blockCounter - 중단점 블록의 카운터 (필수 파라미터: interruptBlock=k)(INTEGER)
+        • interruptBlock/programName - 중단점 블록의 프로그램 이름 (필수 파라미터: interruptBlock=k)(STRING)
+        • interruptBlock/blockData - 중단점 블록 데이터 (필수 파라미터: interruptBlock=k)(STRING)
+        • interruptBlock/searchType - 중단점 검색 유형 (필수 파라미터: interruptBlock=k)(INTEGER)
+        • interruptBlock/mainProgramName - 중단점의 메인 프로그램 이름 (필수 파라미터 : interruptBlock=k)(STRING)
+
+        === 공작물 좌표계 오프셋 정보 ===
+        • currentTotalWorkOffset/workOffsetIndex - G 코드 인덱스(INTEGER)
+        • currentTotalWorkOffset/workOffsetValue - 축별 총 오프셋 값 (필수 파라미터 : workOffsetValue=k)(REAL)
+        • currentTotalWorkOffset/workOffsetRotation - 축별 총 회전 오프셋 값 (필수 파라미터: workOffsetRotation=k)(REAL)
+        • currentTotalWorkOffset/workOffsetScalingFactor - 축별 총 스케일링 값 (필수 파라미터: workOffsetScalingFactor=k)(REAL)
+        • currentTotalWorkOffset/workOffsetMirroringEnabled - 축별 미러링 활성화 여부 (필수 파라미터: workOffsetMirroringEnabled=k)(BOOLEAN)
+
+        === 현재 실행 파일 정보 ===
+        • currentFile/programName - 파일명(STRING)
+        • currentFile/programPath - 파일 경로(STRING)
+        • currentFile/programSize - 파일 크기 (byte)(REAL)
+        • currentFile/programDate - 파일 생성 날짜(STRING)
+        • currentFile/programNameWithPath - 경로를 포함한 전체 파일명(STRING)
+
+        === 메인 프로그램 파일 정보 ===
+        • mainFile/programName - 파일명(STRING)
+        • mainFile/programPath - 파일 경로(STRING)
+        • mainFile/programSize - 파일 크기 (byte)(REAL)
+        • mainFile/programDate - 파일 생성 날짜(STRING)
+        • mainFile/programNameWithPath - 경로를 포함한 전체 파일명(STRING)
+        
+        === 프로그램 제어 옵션 정보 ===
+        • controlOption/singleBlock - 싱글 블록 실행 여부(BOOLEAN)
+        • controlOption/dryRun - 드라이 런 실행 여부(BOOLEAN)
+        • controlOption/optionalStop - 옵셔널 스톱(M01) 활성화 여부(BOOLEAN)
+        • controlOption/blockSkip - 블록 스킵 활성화 여부 리스트 (필수 파라미터: blockSkip=k)(BOOLEAN)
+        • controlOption/machineLock - 머신 락 활성화 여부(BOOLEAN)
+
+        예시:
+        - params = {"machine": 1, "channel": 1}
+        - endpoint = "/machine/channel/currentProgram/sequenceNumber"
+
+        - params = {"machine": 1, "channel": 1, "modal": 1}
+        - endpoint = "/machine/channel/currentProgram/modal/modalCode"
+
+        - params = {"machine": 1, "channel": 1, "workOffsetValue": 1}
+        - endpoint = "/machine/channel/currentProgram/currentTotalWorkOffset/workOffsetValue"
+        
+        - params = {"machine": 1, "channel": 1, "blockSkip": 1}
+        - endpoint = "/machine/channel/currentProgram/controlOption/blockSkip"
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    
+    async def get_workOffset_data(self, endpoint: str, params: dict = None):
+        
+        """
+        공작물 좌표계(G54-G59)의 오프셋 정보를 조회합니다.
+
+        endpoint 형식:
+        • 오프셋 정보: /machine/channel/workOffset/{leaf_node}
+
+        필수 파라미터: machine=i, channel=j, workOffset=k 와 아래 각 항목별 파라미터
+
+        === 공작물 좌표계 오프셋 정보 ===
+        • workOffsetValue - G 코드 인덱스에 대한 축별 오프셋 값 (필수 파라미터: workOffsetValue=l)(REAL)
+        • workOffsetRotation - 축별 오프셋 회전량 (SIEMENS 전용) (필수 파라미터: workOffsetRotation=l)(REAL)
+        • workOffsetScalingFactor - 축별 오프셋 확장량 (SIEMENS 전용) (필수 파라미터: workOffsetScalingFactor=l)(REAL)
+        • workOffsetMirroringEnabled - 축별 미러링 활성화 여부 (SIEMENS 전용) (필수 파라미터: workOffsetMirroringEnabled=l)(BOOLEAN)
+        • workOffsetFine - 축별 오프셋 Fine 값 (SIEMENS 전용) (필수 파라미터: workOffsetFine=l)(REAL)
+
+        예시:
+        # G54(workOffset=1) 좌표계의 1번째 축(workOffsetValue=1) 오프셋 값을 조회
+        - params = {"machine": 1, "channel": 1, "workOffset": 1, "workOffsetValue": 1}
+        - endpoint = "/machine/channel/workOffset/workOffsetValue"
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    async def get_alarmORVariable_data(self, endpoint: str, params: dict = None):
+        
+        """
+        발생한 알람 및 사용자 변수(매크로) 정보를 조회합니다.
+
+        endpoint 형식:
+        • 알람 정보: /machine/channel/alarm/{leaf_node}
+        • 사용자 변수 정보: /machine/channel/variable/{leaf_node}
+
+        필수 파라미터: machine=i, channel=j 와 아래 각 항목별 파라미터
+
+        === 알람 정보 ===
+        • alarmText - 알람 상세 내용 (필수: alarm=k)(STRING)
+        • alarmCategory - 알람 유형 (필수: alarm=k)(STRING)
+        • alarmNumber - 알람 번호 (필수: alarm=k)(STRING)
+        • raisedTimeStamp - 알람 발생 시각 (필수: alarm=k)(STRING)
+
+        === 사용자 변수 정보 ===
+        • userVariable - 사용자 변수 값 (필수: variable=k)(REAL)
+
+        예시:
+        # 1번째 발생 알람의 상세 내용을 조회
+        - params = {"machine": 1, "channel": 1, "alarm": 1}
+        - endpoint = "/machine/channel/alarm/alarmText"
+
+        # 100번 사용자 변수의 값을 조회
+        - params = {"machine": 1, "channel": 1, "variable": 100}
+        - endpoint = "/machine/channel/variable/userVariable"
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    async def get_plc_data(self, endpoint: str, params: dict = None):
+        
+        """
+        CNC 내부 PLC 메모리 데이터를 조회합니다.
+
+        endpoint 형식:
+        • 메모리 정보: /machine/pic/memory/{leaf_node}
+
+        필수 파라미터: machine=i 와 아래 각 항목별 주소 파라미터 {leaf_node}=j
+
+        === PLC 메모리 정보 ===
+        • rbitBlock - 읽기 전용 Bit 데이터 블록 (필수: rbitBlock=j)(BOOLEAN)
+        • bitBlock - 읽기/쓰기 가능 Bit 데이터 블록 (필수: bitBlock=j)(BOOLEAN)
+        • rbyteBlock - 읽기 전용 Byte 데이터 블록 (필수: rbyteBlock=j)(BYTE)
+        • byteBlock - 읽기/쓰기 가능 Byte 데이터 블록 (필수: byteBlock=j)(BYTE)
+        • rwordBlock - 읽기 전용 Word(2byte) 데이터 블록 (필수: rwordBlock=j)(WORD)
+        • wordBlock - 읽기/쓰기 가능 Word(2byte) 데이터 블록 (필수: wordBlock=j)(WORD)
+        • rdwordBlock - 읽기 전용 DWord(4byte) 데이터 블록 (필수: rdwordBlock=j)(DWORD)
+        • dwordBlock - 읽기/쓰기 가능 DWord(4byte) 데이터 블록 (필수: dwordBlock=j)(DWORD)
+        • rqwordBlock - 읽기 전용 QWord(8byte) 데이터 블록 (필수: rqwordBlock=j)(QWORD)
+        • qwordBlock - 읽기/쓰기 가능 QWord(8byte) 데이터 블록 (필수: qwordBlock=j)(QWORD)
+
+        예시:
+        # 100번 주소의 읽기 전용 Bit 블록 값을 조회
+        - params = {"machine": 1, "rbitBlock": 100}
+        - endpoint = "/machine/pic/memory/rbitBlock"
+
+        # 200번 주소의 읽기/쓰기 Word 블록 값을 조회
+        - params = {"machine": 1, "wordBlock": 200}
+        - endpoint = "/machine/pic/memory/wordBlock"
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    async def get_toolArea_data(self, endpoint: str, params: dict = None):
+        
+        """
+        장비의 공구 영역(매거진, 공구 목록) 정보를 조회합니다.
+
+        endpoint 형식:
+        • 일반 정보: /machine/toolArea/{leaf_node}
+        • 매거진 정보: /machine/toolArea/magazine/{leaf_node}
+        • T코드 기준 공구 정보: /machine/toolArea/tools/{leaf_node}
+        • T코드 기준 공구 날 정보: /machine/toolArea/tools/toolEdge/{leaf_node}
+        • T코드 기준 공구 수명 정보: /machine/toolArea/tools/toolEdge/toolLife/{leaf_node}
+        • 등록순 기준 공구 정보: /machine/toolArea/registerTools/{leaf_node}
+        • 등록순 기준 공구 날 정보: /machine/toolArea/registerTools/toolEdge/{leaf_node}
+        • 등록순 기준 공구 수명 정보: /machine/toolArea/registerTools/toolEdge/toolLife/{leaf_node}
+
+        필수 파라미터: machine=i 와 아래 각 항목별 파라미터가 계층적으로 필요합니다.
+        (예: machine=i, toolArea=j, tools=k, toolEdge=l, {leaf_node}=m)
+
+        === 일반 공구 영역 정보 ===
+        • toolAreaEnabled - 해당 공구 영역 사용 가능 여부 (필수: toolArea=j)(BOOLEAN)
+        • numberOfMagazines - 사용 가능한 매거진 개수 (필수: toolArea=j)(INTEGER)
+        • numberOfRegisteredTools - 공구 영역에 등록된 총 공구 개수 (필수: toolArea=j)(INTEGER)
+        • numberOfLoadedTools - 매거진에 탑재된 총 공구 개수 (필수: toolArea=j)(INTEGER)
+        • numberOfToolGroups - 등록된 공구 그룹의 개수 (필수: toolArea=j)(INTEGER)
+        • numberOfToolOffsets - 등록된 공구 오프셋의 개수 (필수: toolArea=j)(INTEGER)
+
+        === 매거진 정보 ===
+        • magazine/magazineEnabled - 해당 매거진 사용 가능 여부 (필수: toolArea=j, magazine=k)(BOOLEAN)
+        • magazine/magazineName - 매거진 이름 (SIEMENS 전용) (필수: toolArea=j, magazine=k)(STRING)
+        • magazine/numberOfRealLocations - 매거진의 물리적 포트(위치) 개수 (필수: toolArea=j, magazine=k)(INTEGER)
+        • magazine/magazinePhysicalNumber - 매거진의 물리적 번호 (필수: toolArea=j, magazine=k)(INTEGER)
+        • magazine/numberOfLoadedTools - 해당 매거진에 탑재된 공구 개수 (필수: toolArea=j, magazine=k)(INTEGER)
+
+        === 공구 상세 정보 (T코드: tools=k / 등록순: registerTools=k) ===
+        # 아래 항목들은 tools와 registerTools 경로에서 동일하게 사용됩니다. (예: /machine/toolArea/tools/toolName)
+        • locationNumber - 공구가 매거진에 탑재된 위치 번호 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
+        • toolName - 공구 이름 (필수: toolArea=j, tools/registerTools=k)(STRING)
+        • numberOfEdges - 공구 날의 총 개수 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
+        • toolEnabled - 공구 영역 등록 및 매거진 탑재 여부 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
+        • magazineNumber - 공구가 탑재된 매거진 번호 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
+        • sisterToolNumber - 할당된 대체 공구 번호 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
+        • toolLifeUnit - 공구 수명 측정 단위 기준 (필수: toolArea=j, tools/registerTools=k, toolLifeUnit=l)(INTEGER)
+        • toolGroupNumber - 공구가 참조된 공구 그룹 번호 리스트 (필수: toolArea=j, tools/registerTools=k)(LIST[INTEGER])
+        • toolUseOrderNumber - 그룹 내 공구 사용 순서 (FANUC 전용) (필수: toolArea=j, tools/registerTools=k)(INTEGER)
+        • toolStatus - 공구의 사용 상태 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
+
+        === 공구 날(Edge) 상세 정보 ===
+        # 아래 항목들은 .../tools/toolEdge 및 .../registerTools/toolEdge 경로에서 동일하게 사용됩니다.
+        # 파라미터 예시: (필수: toolArea=j, tools=k, toolEdge=l)
+        • toolEdge/toolType - 공구 유형 (INTEGER)
+        • toolEdge/lengthOffsetNumber - 공구 길이 보정 식별 번호 (필수: ..., lengthOffsetNumber=m)(INTEGER)
+        • toolEdge/geoLengthOffset - 공구 길이 X 보정값 (필수: ..., geoLengthOffset=m)(REAL)
+        • toolEdge/wearLengthOffset - 공구 길이 X 마모 보정값 (필수: ..., wearLengthOffset=m)(REAL)
+        • toolEdge/radiusOffsetNumber - 공구 반경 보정 식별 번호 (필수: ..., radiusOffsetNumber=m)(INTEGER)
+        • toolEdge/geoRadiusOffset - 공구 반경 보정값 (필수: ..., geoRadiusOffset=m)(REAL)
+        • toolEdge/wearRadiusOffset - 공구 반경 마모 보정값 (필수: ..., wearRadiusOffset=m)(REAL)
+        • toolEdge/edgeEnabled - 공구 날 사용 가능 여부 (BOOLEAN)
+        • toolEdge/geoLengthOffsetZ - 공구 길이 Z 보정값 (필수: ..., geoLengthOffsetZ=m)(REAL)
+        • toolEdge/wearLengthOffsetZ - 공구 길이 Z 마모 보정값 (필수: ..., wearLengthOffsetZ=m)(REAL)
+        • toolEdge/geoLengthOffsetY - 공구 길이 Y 보정값 (필수: ..., geoLengthOffsetY=m)(REAL)
+        • toolEdge/wearLengthOffsetY - 공구 길이 Y 마모 보정값 (필수: ..., wearLengthOffsetY=m)(REAL)
+        • toolEdge/geoOffsetNumber - 길이 X,Z, 반경의 식별 번호 (필수: ..., geoOffsetNumber=m)(INTEGER)
+        • toolEdge/wearOffsetNumber - 길이 X,Z, 반경 마모값의 식별 번호 (필수: ..., wearOffsetNumber=m)(INTEGER)
+        • toolEdge/cuttingEdgePosition - 공구 인선 방향 (필수: ..., cuttingEdgePosition=m)(INTEGER)
+        • toolEdge/tipAngle - 공구의 팁 각도 (REAL)
+        • toolEdge/holderAngle - 공구 홀더 각도 (REAL)
+        • toolEdge/insertAngle - 공구 인서트 각도 (REAL)
+        • toolEdge/insertWidth - 인선 너비 (SIEMENS 전용) (REAL)
+        • toolEdge/insertLength - 인선 길이 (SIEMENS 전용) (REAL)
+        • toolEdge/referenceDirectionHolderAngle - 홀더 각도 참조 방향 (SIEMENS 전용) (REAL)
+        • toolEdge/directionOfSpindleRotation - 스핀들 회전 방향 (SIEMENS 전용) (INTEGER)
+        • toolEdge/numberOfTeeth - 공구 날 개수 (SIEMENS 전용) (INTEGER)
+
+        === 공구 수명 상세 정보 ===
+        # 아래 항목들은 .../toolEdge/toolLife 경로에서 동일하게 사용됩니다.
+        # 파라미터 예시: (필수: toolArea=j, tools=k, toolEdge=l)
+        • toolLife/maxToolLife - 최대 공구 수명 (필수: ..., maxToolLife=m)(REAL)
+        • toolLife/restToolLife - 잔여 공구 수명 (필수: ..., restToolLife=m)(REAL)
+        • toolLife/toolLifeCount - 현재 공구 사용량 (필수: ..., toolLifeCount=m)(REAL)
+        • toolLife/toolLifeAlarm - 공구 수명 도달 경고 설정값 (REAL)
+
+        예시:
+        # 1번 공구 영역의 매거진 개수 조회
+        - params = {"machine": 1, "toolArea": 1}
+        - endpoint = "/machine/toolArea/numberOfMagazines"
+
+        # T코드 5번 공구의 이름 조회
+        - params = {"machine": 1, "toolArea": 1, "tools": 5}
+        - endpoint = "/machine/toolArea/tools/toolName"
+
+        # T코드 5번, 1번 날(Edge), 1번 그룹의 길이 X 보정값 조회
+        - params = {"machine": 1, "toolArea": 1, "tools": 5, "toolEdge": 1, "geoLengthOffset": 1}
+        - endpoint = "/machine/toolArea/tools/toolEdge/geoLengthOffset"
+        
+        # 등록순 3번 공구, 1번 날(Edge), 1번 그룹의 잔여 수명 조회
+        - params = {"machine": 1, "toolArea": 1, "registerTools": 3, "toolEdge": 1, "restToolLife": 1}
+        - endpoint = "/machine/toolArea/registerTools/toolEdge/toolLife/restToolLife"
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+    
+    async def get_buffer_data(self, endpoint: str, params: dict = None):
+        
+        """
+        내장 센서 데이터의 시계열 수집(Time-series) 정보를 조회합니다 (KCNC, FANUC만 지원).
+
+        endpoint 형식:
+        • 버퍼 정보: /machine/buffer/{leaf_node}
+        • 스트림 정보: /machine/buffer/stream/{leaf_node}
+
+        필수 파라미터: machine=i 와 아래 각 항목별 파라미터가 계층적으로 필요합니다.
+        (예: machine=i, buffer=j, stream=k)
+
+        === 버퍼 정보 ===
+        • bufferEnabled - 해당 버퍼 사용 가능 여부 (필수: buffer=j)(BOOLEAN)
+        • numberOfStream - 해당 버퍼의 최대 스트림 개수 (필수: buffer=j)(INTEGER)
+        • statusOfStream - 스트림 상태 (0: 설정 가능, 3: 수집 중 등) (필수: buffer=j)(INTEGER)
+        • modOfStream - 스트림 수집 모드 (0: 반복 수집, 1: 1회 수집) (필수: buffer=j)(INTEGER)
+        • machineChannelOfStream - 스트림 수집 시 사용할 채널 (필수: buffer=j)(INTEGER)
+        • periodOfStream - 1회 수집 기간 (단위: ms) (필수: buffer=j)(INTEGER)
+        • triggerOfStream - 수집 시작 트리거 (0: 즉시, 1이상: 시퀀스 번호) (필수: buffer=j)(INTEGER)
+        • frequencyOfStream - 모든 스트림에 공통으로 적용할 수집 주파수 (Hz) (필수: buffer=j)(INTEGER)
+
+        === 스트림 채널 정보 ===
+        • stream/streamEnabled - 해당 스트림 사용 가능 여부 (필수: buffer=j, stream=k)(BOOLEAN)
+        • stream/streamFrequency - 해당 스트림의 수집 주파수 (Hz) (필수: buffer=j, stream=k)(INTEGER)
+        • stream/streamCategory - 수집 대상 데이터 카테고리 (필수: buffer=j, stream=k)(INTEGER)
+        • stream/streamSubcategory - 수집 대상 데이터 서브카테고리 (축/스핀들 번호 등) (필수: buffer=j, stream=k)(INTEGER)
+        • stream/streamType - 수집 유형 (KCNC 전용) (필수: buffer=j, stream=k)(INTEGER)
+        • stream/streamStartBit - 수집 유형이 Bit일 때 Start Bit (KCNC 전용) (필수: buffer=j, stream=k)(INTEGER)
+        • stream/streamEndBit - 수집 유형이 Bit일 때 End Bit (KCNC 전용) (필수: buffer=j, stream=k)(INTEGER)
+        • stream/value - 해당 스트림에서 마지막으로 수집된 데이터 값 (필수: buffer=j, stream=k)(REAL)
+
+        예시:
+        # 1번 버퍼의 수집 상태를 조회
+        - params = {"machine": 1, "buffer": 1}
+        - endpoint = "/machine/buffer/statusOfStream"
+
+        # 1번 버퍼의 3번 스트림에서 마지막으로 수집된 값을 조회
+        - params = {"machine": 1, "buffer": 1, "stream": 3}
+        - endpoint = "/machine/buffer/stream/value"
+        """
+
+        return await self.machine_repo.get_data(endpoint, params)
+    
+
+    async def get_error_info_by_code(self, error_code: int) -> Dict[str, str]:
+        """
+        주어진 에러 코드(error_status)에 해당하는 분류와 설명을 반환합니다.
+
+        Args:
+            error_code (int): 조회할 9자리 에러 상태 코드.
+
+        Returns:
+            Dict[str, str]: '분류'와 '설명'이 포함된 딕셔너리.
+                           에러 코드를 찾지 못하거나 파일이 없으면 에러 정보가 담긴 딕셔너리를 반환합니다.
+        """
+        # 입력된 정수형 에러 코드를 JSON 파일의 키 형식인 문자열로 변환합니다.
+        error_code_str = str(error_code)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        json_file_path = os.path.join(current_dir, '..', 'torus_manual/error_status.json')
+
+        try:
+            # UTF-8 인코딩으로 JSON 파일을 엽니다. (한글 포함)
+            with open(json_file_path, 'r', encoding='utf-8') as f:
+                error_data = json.load(f)
+
+            # .get() 메소드를 사용하여 에러 코드를 찾습니다.
+            # 키가 존재하지 않으면 None을 반환하여 KeyError를 방지합니다.
+            error_info = error_data.get(error_code_str)
+
+            if error_info:
+                return error_info
+            else:
+                return {
+                    "분류": "Not Found",
+                    "설명": f"에러 코드 '{error_code}'에 해당하는 정보를 찾을 수 없습니다."
+                }
+
+        except FileNotFoundError:
+            return {
+                "분류": "File Error",
+                "설명": f"에러 정의 파일({json_file_path})을 찾을 수 없습니다."
+            }
+        except json.JSONDecodeError:
+            return {
+                "분류": "JSON Error",
+                "설명": "에러 정의 파일(error_status.json)의 형식이 올바르지 않습니다."
+            }
+        
+
+    async def get_description_and_params_by_uri(self, endpoint: str):
+        """
+        주어진 API 엔드포인트에 대한 설명과 필수 파라미터를 반환합니다.
+
+        직전 tool 호출의 결과로 error_status : 538992680가 반환된 경우,
+        이 tool을 호출하여 해당 엔드포인트의 설명과 필수 파라미터를 확인한 후,
+        직전에 호출한 tool에 재입력하여 다시 시도할 수 있습니다.
+
+        Args:
+            endpoint (str): API 엔드포인트.
+
+        Returns:
+            dict: 엔드포인트에 대한 설명 및 필수 파라미터를 포함하는 딕셔너리.
+                오류가 발생하면 "__error__" 키를 포함한 딕셔너리를 반환합니다.
+        """
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        json_file_path = os.path.join(current_dir, '..', 'torus_manual/uri_params.json')
+
+        try:
+            # JSON 파일을 비동기적으로 읽기
+            with open(json_file_path, 'r', encoding='utf-8') as f:
+                file_content = f.read()
+
+            api_data = json.loads(file_content)
+
+            # 엔드포인트 정보 검색
+            api_info = api_data.get(endpoint)
+
+            # 결과 반환
+            if api_info:
+                return {
+                    "description": api_info.get("description"),
+                    "required_params": api_info.get("required_params")
+                }
+            else:
+                # 정보를 찾지 못한 경우
+                return {
+                    "__error__": True,
+                    "message": f"엔드포인트 '{endpoint}'에 대한 정보를 찾을 수 없습니다.",
+                    "endpoint": endpoint,
+                    "full_api_response": None
+                }
+
+        except FileNotFoundError:
+            return {
+                "__error__": True,
+                "message": "URI 및 파라미터 JSON 파일을 찾을 수 없습니다. 경로를 확인하세요."
+            }
+        except json.JSONDecodeError:
+            return {
+                "__error__": True,
+                "message": "URI 및 파라미터 JSON 파일의 형식이 잘못되었습니다."
+            }
+        except Exception as e:
+            return {
+            "__error__": True,
+            "message": f"알 수 없는 오류가 발생했습니다: {str(e)}"
+            }
+
+    async def guardrail(self, query: str) :
+        """
+        - 사용자의 질문을 평가하여 도메인 관련성과 명확성을 확인합니다. 
+        - 모호하거나 관련 없는 질문을 필터링하기 위해 다른 모든 툴보다 먼저 호출되어야 합니다.
+        
+        """
+
