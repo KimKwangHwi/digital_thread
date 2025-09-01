@@ -613,14 +613,13 @@ class MachineService:
 
         return await self.machine_repo.get_data(endpoint, params)
     
-    async def get_alarmORVariable_data(self, endpoint: str, params: dict = None):
+    async def get_alarm_data(self, endpoint: str, params: dict = None):
         
         """
         발생한 알람 및 사용자 변수(매크로) 정보를 조회합니다.
 
         endpoint 형식:
         • 알람 정보: /machine/channel/alarm/{leaf_node}
-        • 사용자 변수 정보: /machine/channel/variable/{leaf_node}
 
         필수 파라미터: machine=i, channel=j 와 아래 각 항목별 파라미터
 
@@ -630,20 +629,26 @@ class MachineService:
         • alarmNumber - 알람 번호 (필수: alarm=k)(STRING)
         • raisedTimeStamp - 알람 발생 시각 (필수: alarm=k)(STRING)
 
-        === 사용자 변수 정보 ===
-        • userVariable - 사용자 변수 값 (필수: variable=k)(REAL)
+        
 
         예시:
         # 1번째 발생 알람의 상세 내용을 조회
         - params = {"machine": 1, "channel": 1, "alarm": 1}
         - endpoint = "/machine/channel/alarm/alarmText"
-
-        # 100번 사용자 변수의 값을 조회
-        - params = {"machine": 1, "channel": 1, "variable": 100}
-        - endpoint = "/machine/channel/variable/userVariable"
         """
 
         return await self.machine_repo.get_data(endpoint, params)
+    
+    async def get_variable_data(self, endpoint: str, params: dict = None):
+        """
+        사용자 변수(매크로) 정보를 조회합니다.
+        
+        
+        === 사용자 변수 정보 ===
+        • userVariable - 사용자 변수 값 (필수: variable=k)(REAL)
+        
+        endpoint 형식: /machine/channel/variable/{leaf_node}
+        """
     
     async def get_plc_data(self, endpoint: str, params: dict = None):
         
@@ -652,6 +657,8 @@ class MachineService:
 
         endpoint 형식:
         • 메모리 정보: /machine/pic/memory/{leaf_node}
+        
+        필수 파라미터: machine=i, channel=j, variable=k
 
         필수 파라미터: machine=i 와 아래 각 항목별 주소 파라미터 {leaf_node}=j
 

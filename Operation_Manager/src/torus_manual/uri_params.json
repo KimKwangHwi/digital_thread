@@ -20,7 +20,7 @@
     "필요 파라미터": "machine"
   },
   "/machine/basicLengthUnit": {
-    "설명": "장비가 사용하는 기본 길이 단위 (0: Metric, 1: Inches 등).",
+    "설명": "장비가 사용하는 기본 길이 단위 (0: Metric, 1: Inches, 4: user Define).",
     "필요 파라미터": "machine"
   },
   "/machine/machinePowerOnTime": {
@@ -68,7 +68,7 @@
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/alarmStatus": {
-    "설명": "채널의 알람 상태 (0: No alarm, 1: Alarm 등).",
+    "설명": "채널의 알람 상태 (0: No alarm, 1: Alarm, 2: alarm without stop, 3: alarm with stop, 4: battery low, 5: FAN, 6: PS Warning, 7: FSSB warning, 8: Insulate warning, 9: Encoder warning, 10: PMC alarm 등).",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/numberOfAlarms": {
@@ -76,7 +76,7 @@
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/operateMode": {
-    "설명": "공작기계의 운전 모드 (0: JOG, 1: MDI, 2: MEMORY 등).",
+    "설명": "공작기계의 운전 모드 (0: JOG, 1: MDI, 2: MEMORY(AUTO), 3: ZRN, 4: MPG, 5: ****, 6: EDIT, 7: HANDLE, 8: Teach in JOG, 9: Teach in HANDLE, 10: INC·feed, 11: REFERENCE, 12: REMOTE, 13: JOG-REPOS, 14: MDI-REF.POINT, 15: MDI-TEACH IN, 16: MDI-TECH IN-REF.POINT, 17: AUTO-TECH IN-REF.POINT, 18: STEP, 19: RAPID, 20: TAPE, 21: AUTO-TEACH IN-JOG, 22: JOG-REF 등).",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/numberOfWorkOffsets": {
@@ -84,15 +84,15 @@
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/ncState": {
-    "설명": "CNC의 작동 상태 (0: Reset, 1: Stop, 2: Hold, 3: Start 등).",
+    "설명": "CNC의 작동 상태 (0: **** (=reset), 1: Stop, 2: Hold, 3: Start (=Active) (=Run), 4: MSTR, 5: Interrupted, 6: Pause 등).",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/motionStatus": {
-    "설명": "장비의 현재 모션 상태 (1: Motion, 2: Dwell 등).",
+    "설명": "장비의 현재 모션 상태 (0: ***, 1: Motion, 2: Dwell, 3: Wait 등).",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/emergencyStatus": {
-    "설명": "비상 정지(Emergency) 상태 여부 (0: Not emergency, 1: Emergency).",
+    "설명": "비상 정지(Emergency) 상태 여부 (0: Not emergency, 1: Emergency, 2: Reset, 3: Wait).",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/axis/machinePosition": {
@@ -220,7 +220,7 @@
     "필요 파라미터": "machine, channel, spindle"
   },
   "/machine/channel/spindle/rpm/speedUnit": {
-    "설명": "속도 단위 (2: rpm, 3: mm/rev 등).",
+    "설명": "속도 단위 (0: mm/min, 1: inch/min, 2: rpm(rev/min), 3: mm/rev, 4: inch/rev 등).",
     "필요 파라미터": "machine, channel, spindle"
   },
   "/machine/channel/spindle/spindlePower/actualPowerConsumption": {
@@ -252,7 +252,7 @@
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/feed/feedRate/speedUnit": {
-    "설명": "속도 단위 (0: mm/min, 1: inch/min 등).",
+    "설명": "속도 단위 (0: mm/min, 1: inch/min, 2: rpm(rev/min), 3: mm/rev, 4: inch/rev 등).",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/workStatus/workCounter/currentWorkCounter": {
@@ -464,11 +464,11 @@
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/currentProgram/programMode": {
-    "설명": "프로그램 실행 모드 (0: Reset, 3: Start 등).",
+    "설명": "프로그램 실행 모드 (0: **** (reset), 1: Stop, 2: Hold, 3: Start (Active) (Run), 4: MSTR, 5: Interrupted, 6: Pause, 7: Waiting).",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/currentProgram/currentWorkOffsetIndex": {
-    "설명": "현재 공작물 좌표계의 G 코드 인덱스.",
+    "설명": "현재 공작물 좌표계의 G 코드 인덱스. Fanuc -> 1: G54, 2: G55, 3: G56, 4: G57, 5: G58, 6: G59, 7: G54.1 P1(확장 좌표계 시작), ... ,  n: G54. P(n-6), ..., 306: G54.1 P300 / SIEMENS -> 0: G500, 1: G54, 2: G55, 3: G56, 4: G57, 5: G505, 6: G506, ..., n: G(500+n), 99: G599 / MITSUBISHI -> 1: G54, 2: G55, 3: G56, 4: G57, 5: G58, 6: G59, 7: G54.1 / KCNC -> 1: G54, 2: G55, 3: G56, 4: G57, 5: G58, 6: G59.",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/currentProgram/currentWorkOffsetCode": {
@@ -476,7 +476,7 @@
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/currentProgram/currentDepthLevel": {
-    "설명": "현재 프로그램의 레벨 (메인, 서브루틴 등).",
+    "설명": "현재 프로그램의 레벨 (메인, 서브루틴 등). MITSUBISHI는 0~8 / SIEMENS -> 1: Main program, 2: 1st subroutine level, 3: 2nd subroutine level, 4: 3rd subroutine level, 5: 4th subroutine level, 6: 5th subroutine level, 7: 6th subroutine level, 8: 7th subroutine level, 9: 1st asynchronous subroutine level, 10: 2nd asynchronous subroutine level, 11: 3rd asynchronous subroutine level, 12: 4th asynchronous subroutine level",
     "필요 파라미터": "machine, channel"
   },
   "/machine/channel/currentProgram/modal/modalIndex": {
@@ -732,7 +732,7 @@
     "required_params": "machine, toolArea, tools"
   },
   "/machine/toolArea/tools/toolEnabled": {
-    "description": "공구 영역 등록 및 매거진 탑재 여부.",
+    "description": "공구 영역 등록 및 매거진 탑재 여부. (공구영역/매거진 -> 0: 미등록/미탑재, 1: 등록/미탑재, 2: 등록/탑재)",
     "required_params": "machine, toolArea, tools"
   },
   "/machine/toolArea/tools/magazineNumber": {
@@ -743,8 +743,8 @@
     "description": "할당된 대체 공구 번호.",
     "required_params": "machine, toolArea, tools"
   },
-  "//machine/toolArea/tools/toolLifeUnit": {
-    "description": "공구 수명 측정 단위 기준.",
+  "/machine/toolArea/tools/toolLifeUnit": {
+    "description": "공구 수명 측정 단위 기준. 0: no unit, 1: time, 2: count. 4: wear, 5: count(장착), 6: count(사용), 8: offset",
     "required_params": "machine, toolArea, tools, toolLifeUnit"
   },
   "/machine/toolArea/tools/toolGroupNumber": {
@@ -756,11 +756,11 @@
     "required_params": "machine, toolArea, tools"
   },
   "/machine/toolArea/tools/toolStatus": {
-    "description": "공구의 사용 상태.",
+    "description": "공구의 사용 상태. 0: Not enabled, 1: Active tool, 2: Enabled, 4: Disabled, 8: Measured, 9: 미사용 공구, 10: 정상 수명 공구, 11: Tool data is available (using), 12: This tool is registered (available), 13: This tool has expired, 14: This tool was skipped, 16: Prewarning limit reached, 32: Tool being changed, 64: Fixed location coded, 128: Tool was in use, 256: Tool is in the buffer magazine with transport order, 512: Ignore disabled state of tool, 1024: Tool must be unloaded, 2048: Tool must be loaded, 4096: Tool is a master tool, 8192: Reserved, 16384: Tool is marked for 1:1 exchange, 32768: Tool is being used as a manual tool / SIEMENS는 Tool Status의 값이 합쳐져서 출력됩니다. 예를 들어 131이 출력되면 1 + 2 + 128 = 131 (1:Active tool, 2:Enabled, 128:Tool was in use) 3가지 상태가 적용된 것입니다.",
     "required_params": "machine, toolArea, tools"
   },
   "/machine/toolArea/tools/toolEdge/toolType": {
-    "description": "공구 유형.",
+    "description": "공구 유형. 0: Not defined, 10: General-purpose tool, 11: Threading tool (Siemens에서는 540), 12: Grooving tool, 13: Round-nose tool, 14: Point nose straight tool, 15: Versatile tool, 20: Drill, 21: Counter sink tool, 22: Flat end mill, 23: Ball end mill, 24: Tap (Siemens에서는 240), 25: Reamer, 26: Boring tool, 27: Face mill, 50: Radius end mill, 51: 면취, 52: 선삭, 53: 홈삽입, 54: 나사절삭, 55: 선삭드릴, 56: 선삭탭, 100: Milling tool, 110: Ball nose end mill, 111: Conical ball end, 120: End mill, 121: End mill corner rounding, 130: Angle head cutter, 131: Corner rounding angle head cutter, 140: Facing tool, 145: Thread cutter, 150: Side mill, 151: Saw, 155: Bevelled cutter, 156: Bevelled cutter corner, 157: Tap. die-sink. cutter, 160: Drill&thread cut., 200: Twist drill, 205: Solid drill, 210: Boring bar, 220: Center drill, 230: Countersink, 231: Counterbore, 240: Tap, 241: Fine tap, 242: Tap, Whitworth, 250: Reamer, 500: Roughing tool, 510: Finishing tool, 520: Plunge cutter, 530: Cutting tool, 540: Threading tool, 550: Button tool, 560: Rotary drill, 580: 3D turning probe, 585: Calibrating tool, 700: Slotting saw, 710: 3D probe, 711: Edge finder, 712: Mono probe, 713: L probe, 714: Star probe, 725: Calibrating tool, 730: Stop, 731: Mandrel, 732: Steady rest, 900: Auxiliary tools",
     "required_params": "machine, toolArea, tools, toolEdge"
   },
   "/machine/toolArea/tools/toolEdge/lengthOffsetNumber": {
@@ -796,7 +796,7 @@
     "required_params": "machine, toolArea, tools, toolEdge"
   },
   "/machine/toolArea/tools/toolEdge/directionOfSpindleRotation": {
-    "description": "스핀들 회전 방향 (SIEMENS 전용).",
+    "description": "스핀들 회전 방향 (SIEMENS 전용). 0: 회전 없음, 1: 시계방향, 2: 반시계방향.",
     "required_params": "machine, toolArea, tools, toolEdge"
   },
   "/machine/toolArea/tools/toolEdge/numberOfTeeth": {
@@ -827,7 +827,7 @@
     "description": "할당된 대체 공구 번호.",
     "required_params": "machine, toolArea, registerTools"
   },
-  "//machine/toolArea/registerTools/toolLifeUnit": {
+  "/machine/toolArea/registerTools/toolLifeUnit": {
     "description": "공구 수명 측정 단위 기준.",
     "required_params": "machine, toolArea, registerTools, toolLifeUnit"
   },
@@ -1024,7 +1024,7 @@
     "필요 파라미터": "machine, buffer"
   },
   "/machine/buffer/statusOfStream": {
-    "설명": "스트림 상태 (0: 설정 가능, 3: 수집 중 등).",
+    "설명": "스트림 상태 (0: 설정 가능, 1: 수집 가능, 2: 수집 대기, 3: 수집 중, 4: 수집 대기 혹은 수집 중, 5: 수집 완료/종료, -1: CNC 연결 실패, -2: 설정값 적용 실패).",
     "필요 파라미터": "machine, buffer"
   },
   "/machine/buffer/modOfStream": {
@@ -1044,7 +1044,7 @@
     "필요 파라미터": "machine, buffer"
   },
   "/machine/buffer/frequencyOfStream": {
-    "설명": "모든 스트림에 공통으로 적용할 수집 주파수 (Hz).",
+    "설명": "모든 스트림에 공통으로 적용할 수집 주파수 (Hz) 1000 or 4000.",
     "필요 파라미터": "machine, buffer"
   },
   "/machine/buffer/stream/streamEnabled": {
@@ -1052,7 +1052,7 @@
     "필요 파라미터": "machine, buffer, stream"
   },
   "/machine/buffer/stream/streamFrequency": {
-    "설명": "해당 스트림의 수집 주파수 (Hz).",
+    "설명": "해당 스트림의 수집 주파수 (Hz). 1000 or 4000",
     "필요 파라미터": "machine, buffer, stream"
   },
   "/machine/buffer/stream/streamCategory": {
@@ -1064,7 +1064,7 @@
     "필요 파라미터": "machine, buffer, stream"
   },
   "/machine/buffer/stream/streamType": {
-    "설명": "수집 유형 (KCNC 전용).",
+    "설명": "수집 유형 (KCNC 전용). 0: bit, 1: resistor",
     "필요 파라미터": "machine, buffer, stream"
   },
   "/machine/buffer/stream/streamStartBit": {

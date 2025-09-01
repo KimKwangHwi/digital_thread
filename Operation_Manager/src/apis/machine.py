@@ -46,3 +46,5 @@ async def get_machine_status(
     - Returns: 장비의 가공 상태(대기/가공/완료 등)
     """
     return await macine_service.get_machine_status(machine_id)
+
+
