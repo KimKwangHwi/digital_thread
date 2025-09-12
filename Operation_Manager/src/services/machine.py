@@ -621,13 +621,13 @@ class MachineService:
         endpoint 형식:
         • 알람 정보: /machine/channel/alarm/{leaf_node}
 
-        필수 파라미터: machine=i, channel=j 와 아래 각 항목별 파라미터
+        필수 파라미터: machine=i, channel=j, alarm=k
 
         === 알람 정보 ===
-        • alarmText - 알람 상세 내용 (필수: alarm=k)(STRING)
-        • alarmCategory - 알람 유형 (필수: alarm=k)(STRING)
-        • alarmNumber - 알람 번호 (필수: alarm=k)(STRING)
-        • raisedTimeStamp - 알람 발생 시각 (필수: alarm=k)(STRING)
+        • alarmText - 알람 상세 내용 (STRING)
+        • alarmCategory - 알람 유형 (STRING)
+        • alarmNumber - 알람 번호 (STRING)
+        • raisedTimeStamp - 알람 발생 시각 (STRING)
 
         
 
@@ -701,55 +701,55 @@ class MachineService:
         • 등록순 기준 공구 날 정보: /machine/toolArea/registerTools/toolEdge/{leaf_node}
         • 등록순 기준 공구 수명 정보: /machine/toolArea/registerTools/toolEdge/toolLife/{leaf_node}
 
-        필수 파라미터: machine=i 와 아래 각 항목별 파라미터가 계층적으로 필요합니다.
+        필수 파라미터: machine=i, toolArea = j  와 아래 각 항목별 파라미터가 계층적으로 필요합니다.
         (예: machine=i, toolArea=j, tools=k, toolEdge=l, {leaf_node}=m)
 
         === 일반 공구 영역 정보 ===
-        • toolAreaEnabled - 해당 공구 영역 사용 가능 여부 (필수: toolArea=j)(BOOLEAN)
-        • numberOfMagazines - 사용 가능한 매거진 개수 (필수: toolArea=j)(INTEGER)
-        • numberOfRegisteredTools - 공구 영역에 등록된 총 공구 개수 (필수: toolArea=j)(INTEGER)
-        • numberOfLoadedTools - 매거진에 탑재된 총 공구 개수 (필수: toolArea=j)(INTEGER)
-        • numberOfToolGroups - 등록된 공구 그룹의 개수 (필수: toolArea=j)(INTEGER)
-        • numberOfToolOffsets - 등록된 공구 오프셋의 개수 (필수: toolArea=j)(INTEGER)
+        • toolAreaEnabled - 해당 공구 영역 사용 가능 여부 (BOOLEAN)
+        • numberOfMagazines - 사용 가능한 매거진 개수 (INTEGER)
+        • numberOfRegisteredTools - 공구 영역에 등록된 총 공구 개수 (INTEGER)
+        • numberOfLoadedTools - 매거진에 탑재된 총 공구 개수 (INTEGER)
+        • numberOfToolGroups - 등록된 공구 그룹의 개수 (INTEGER)
+        • numberOfToolOffsets - 등록된 공구 오프셋의 개수 (INTEGER)
 
         === 매거진 정보 ===
-        • magazine/magazineEnabled - 해당 매거진 사용 가능 여부 (필수: toolArea=j, magazine=k)(BOOLEAN)
-        • magazine/magazineName - 매거진 이름 (SIEMENS 전용) (필수: toolArea=j, magazine=k)(STRING)
-        • magazine/numberOfRealLocations - 매거진의 물리적 포트(위치) 개수 (필수: toolArea=j, magazine=k)(INTEGER)
-        • magazine/magazinePhysicalNumber - 매거진의 물리적 번호 (필수: toolArea=j, magazine=k)(INTEGER)
-        • magazine/numberOfLoadedTools - 해당 매거진에 탑재된 공구 개수 (필수: toolArea=j, magazine=k)(INTEGER)
+        • magazine/magazineEnabled - 해당 매거진 사용 가능 여부 (필수: magazine=k)(BOOLEAN)
+        • magazine/magazineName - 매거진 이름 (SIEMENS 전용) (필수: magazine=k)(STRING)
+        • magazine/numberOfRealLocations - 매거진의 물리적 포트(위치) 개수 (필수: magazine=k)(INTEGER)
+        • magazine/magazinePhysicalNumber - 매거진의 물리적 번호 (필수: magazine=k)(INTEGER)
+        • magazine/numberOfLoadedTools - 해당 매거진에 탑재된 공구 개수 (필수: magazine=k)(INTEGER)
 
         === 공구 상세 정보 (T코드: tools=k / 등록순: registerTools=k) ===
         # 아래 항목들은 tools와 registerTools 경로에서 동일하게 사용됩니다. (예: /machine/toolArea/tools/toolName)
-        • locationNumber - 공구가 매거진에 탑재된 위치 번호 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
-        • toolName - 공구 이름 (필수: toolArea=j, tools/registerTools=k)(STRING)
-        • numberOfEdges - 공구 날의 총 개수 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
-        • toolEnabled - 공구 영역 등록 및 매거진 탑재 여부 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
-        • magazineNumber - 공구가 탑재된 매거진 번호 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
-        • sisterToolNumber - 할당된 대체 공구 번호 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
-        • toolLifeUnit - 공구 수명 측정 단위 기준 (필수: toolArea=j, tools/registerTools=k, toolLifeUnit=l)(INTEGER)
-        • toolGroupNumber - 공구가 참조된 공구 그룹 번호 리스트 (필수: toolArea=j, tools/registerTools=k)(LIST[INTEGER])
-        • toolUseOrderNumber - 그룹 내 공구 사용 순서 (FANUC 전용) (필수: toolArea=j, tools/registerTools=k)(INTEGER)
-        • toolStatus - 공구의 사용 상태 (필수: toolArea=j, tools/registerTools=k)(INTEGER)
+        • locationNumber - 공구가 매거진에 탑재된 위치 번호 (필수: tools/registerTools=k)(INTEGER)
+        • toolName - 공구 이름 (필수: tools/registerTools=k)(STRING)
+        • numberOfEdges - 공구 날의 총 개수 (필수: tools/registerTools=k)(INTEGER)
+        • toolEnabled - 공구 영역 등록 및 매거진 탑재 여부 (필수: tools/registerTools=k)(INTEGER)
+        • magazineNumber - 공구가 탑재된 매거진 번호 (필수: tools/registerTools=k)(INTEGER)
+        • sisterToolNumber - 할당된 대체 공구 번호 (필수: tools/registerTools=k)(INTEGER)
+        • toolLifeUnit - 공구 수명 측정 단위 기준 (필수: tools/registerTools=k, toolLifeUnit=l)(INTEGER)
+        • toolGroupNumber - 공구가 참조된 공구 그룹 번호 리스트 (필수: tools/registerTools=k)(LIST[INTEGER])
+        • toolUseOrderNumber - 그룹 내 공구 사용 순서 (FANUC 전용) (필수: tools/registerTools=k)(INTEGER)
+        • toolStatus - 공구의 사용 상태 (필수: tools/registerTools=k)(INTEGER)
 
         === 공구 날(Edge) 상세 정보 ===
         # 아래 항목들은 .../tools/toolEdge 및 .../registerTools/toolEdge 경로에서 동일하게 사용됩니다.
         # 파라미터 예시: (필수: toolArea=j, tools=k, toolEdge=l)
         • toolEdge/toolType - 공구 유형 (INTEGER)
-        • toolEdge/lengthOffsetNumber - 공구 길이 보정 식별 번호 (필수: ..., lengthOffsetNumber=m)(INTEGER)
-        • toolEdge/geoLengthOffset - 공구 길이 X 보정값 (필수: ..., geoLengthOffset=m)(REAL)
-        • toolEdge/wearLengthOffset - 공구 길이 X 마모 보정값 (필수: ..., wearLengthOffset=m)(REAL)
-        • toolEdge/radiusOffsetNumber - 공구 반경 보정 식별 번호 (필수: ..., radiusOffsetNumber=m)(INTEGER)
-        • toolEdge/geoRadiusOffset - 공구 반경 보정값 (필수: ..., geoRadiusOffset=m)(REAL)
-        • toolEdge/wearRadiusOffset - 공구 반경 마모 보정값 (필수: ..., wearRadiusOffset=m)(REAL)
+        • toolEdge/lengthOffsetNumber - 공구 길이 보정 식별 번호 (필수: lengthOffsetNumber=m)(INTEGER)
+        • toolEdge/geoLengthOffset - 공구 길이 X 보정값 (필수: geoLengthOffset=m)(REAL)
+        • toolEdge/wearLengthOffset - 공구 길이 X 마모 보정값 (필수: wearLengthOffset=m)(REAL)
+        • toolEdge/radiusOffsetNumber - 공구 반경 보정 식별 번호 (필수: radiusOffsetNumber=m)(INTEGER)
+        • toolEdge/geoRadiusOffset - 공구 반경 보정값 (필수: geoRadiusOffset=m)(REAL)
+        • toolEdge/wearRadiusOffset - 공구 반경 마모 보정값 (필수: wearRadiusOffset=m)(REAL)
         • toolEdge/edgeEnabled - 공구 날 사용 가능 여부 (BOOLEAN)
-        • toolEdge/geoLengthOffsetZ - 공구 길이 Z 보정값 (필수: ..., geoLengthOffsetZ=m)(REAL)
-        • toolEdge/wearLengthOffsetZ - 공구 길이 Z 마모 보정값 (필수: ..., wearLengthOffsetZ=m)(REAL)
-        • toolEdge/geoLengthOffsetY - 공구 길이 Y 보정값 (필수: ..., geoLengthOffsetY=m)(REAL)
-        • toolEdge/wearLengthOffsetY - 공구 길이 Y 마모 보정값 (필수: ..., wearLengthOffsetY=m)(REAL)
-        • toolEdge/geoOffsetNumber - 길이 X,Z, 반경의 식별 번호 (필수: ..., geoOffsetNumber=m)(INTEGER)
-        • toolEdge/wearOffsetNumber - 길이 X,Z, 반경 마모값의 식별 번호 (필수: ..., wearOffsetNumber=m)(INTEGER)
-        • toolEdge/cuttingEdgePosition - 공구 인선 방향 (필수: ..., cuttingEdgePosition=m)(INTEGER)
+        • toolEdge/geoLengthOffsetZ - 공구 길이 Z 보정값 (필수: geoLengthOffsetZ=m)(REAL)
+        • toolEdge/wearLengthOffsetZ - 공구 길이 Z 마모 보정값 (필수: wearLengthOffsetZ=m)(REAL)
+        • toolEdge/geoLengthOffsetY - 공구 길이 Y 보정값 (필수: geoLengthOffsetY=m)(REAL)
+        • toolEdge/wearLengthOffsetY - 공구 길이 Y 마모 보정값 (필수: wearLengthOffsetY=m)(REAL)
+        • toolEdge/geoOffsetNumber - 길이 X,Z, 반경의 식별 번호 (필수: geoOffsetNumber=m)(INTEGER)
+        • toolEdge/wearOffsetNumber - 길이 X,Z, 반경 마모값의 식별 번호 (필수: wearOffsetNumber=m)(INTEGER)
+        • toolEdge/cuttingEdgePosition - 공구 인선 방향 (필수: cuttingEdgePosition=m)(INTEGER)
         • toolEdge/tipAngle - 공구의 팁 각도 (REAL)
         • toolEdge/holderAngle - 공구 홀더 각도 (REAL)
         • toolEdge/insertAngle - 공구 인서트 각도 (REAL)
@@ -761,10 +761,10 @@ class MachineService:
 
         === 공구 수명 상세 정보 ===
         # 아래 항목들은 .../toolEdge/toolLife 경로에서 동일하게 사용됩니다.
-        # 파라미터 예시: (필수: toolArea=j, tools=k, toolEdge=l)
-        • toolLife/maxToolLife - 최대 공구 수명 (필수: ..., maxToolLife=m)(REAL)
-        • toolLife/restToolLife - 잔여 공구 수명 (필수: ..., restToolLife=m)(REAL)
-        • toolLife/toolLifeCount - 현재 공구 사용량 (필수: ..., toolLifeCount=m)(REAL)
+        # 파라미터 예시: (필수: machine = i, toolArea=j, tools=k, toolEdge=l)
+        • toolLife/maxToolLife - 최대 공구 수명 (필수: maxToolLife=m)(REAL)
+        • toolLife/restToolLife - 잔여 공구 수명 (필수: restToolLife=m)(REAL)
+        • toolLife/toolLifeCount - 현재 공구 사용량 (필수: toolLifeCount=m)(REAL)
         • toolLife/toolLifeAlarm - 공구 수명 도달 경고 설정값 (REAL)
 
         예시:
