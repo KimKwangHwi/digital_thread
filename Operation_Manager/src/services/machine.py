@@ -616,7 +616,7 @@ class MachineService:
     async def get_alarm_data(self, endpoint: str, params: dict = None):
         
         """
-        발생한 알람 및 사용자 변수(매크로) 정보를 조회합니다.
+        발생한 알람 정보를 조회합니다.
 
         endpoint 형식:
         • 알람 정보: /machine/channel/alarm/{leaf_node}
