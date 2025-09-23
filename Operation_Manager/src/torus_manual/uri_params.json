@@ -619,6 +619,10 @@
     "설명": "알람 상세 내용.",
     "필요 파라미터": "machine, channel, alarm"
   },
+  "/machine/channel/alarm": {
+    "설명": "해당 계통에서 발생한 모든 알람에 대한 Text, Category, Number, raisedTimeStamp를 리스트로 나타내는 문자열(JSON 형태) 속성",
+    "필요 파라미터": "machine, channel, alarm"
+  },
   "/machine/channel/alarm/alarmCategory": {
     "설명": "알람 유형.",
     "필요 파라미터": "machine, channel, alarm"

@@ -624,7 +624,7 @@ class MachineService:
         필수 파라미터: machine=i, channel=j, alarm=k(k번째 알람)
 
         === 알람 정보 ===
-        • alarm - 해당 계통에서 발생한 모든 알람에 대한 Text, Category, Number, raisedTimeStamp를 리스트로 나타내는 문자열(JSON 형태)(INTEGER)
+        • (수정하자) - 해당 계통에서 발생한 모든 알람에 대한 Text, Category, Number, raisedTimeStamp를 리스트로 나타내는 문자열(JSON 형태)(INTEGER)
         • alarmText - 알람 상세 내용 (STRING)
         • alarmCategory - 알람 유형 (STRING)
         • alarmNumber - 알람 번호 (STRING)
@@ -659,7 +659,7 @@ class MachineService:
         endpoint 형식:
         • 메모리 정보: /machine/pic/memory/{leaf_node}
         
-        필수 파라미터: machine=i, channel=j, variable=k
+        필수 파라미터: machine=i, channel=j
 
         필수 파라미터: machine=i 와 아래 각 항목별 주소 파라미터 {leaf_node}=j
 
@@ -948,4 +948,77 @@ class MachineService:
         - 모호하거나 관련 없는 질문을 필터링하기 위해 다른 모든 툴보다 먼저 호출되어야 합니다.
         
         """
+        
+        
+    async def get_toolLife_info(self, machine: int):
+        """
+        등록순 기준 공구 수명 정보를 비동기적으로 효율적이게 조회합니다. 장비 번호만 입력하면 됩니다.
+        Args:
+            machine (int): 조회할 장비 번호.
+        """
+        machine_param = {"machine": machine, "toolArea": 1}
+        numberOfRegisteredTools = await self.machine_repo.get_data("/machine/toolArea/numberOfRegisteredTools", machine_param)
 
+        if not (isinstance(numberOfRegisteredTools, int) and numberOfRegisteredTools > 0):
+            # 유효한 공구 개수가 없으면 빈 리스트 또는 에러 메시지 반환
+            return "등록된 공구가 없습니다."
+
+        # 1. 모든 공구의 날(edge) 개수를 동시에 조회
+        edge_tasks = []
+        for i in range(1, numberOfRegisteredTools + 1):
+            edge_params = machine_param.copy()
+            edge_params["registerTools"] = i
+            edge_tasks.append(
+                self.machine_repo.get_data("/machine/toolArea/registerTools/numberOfEdges", edge_params)
+            )
+        numberOftoolEdgesList = await asyncio.gather(*edge_tasks)
+        cleaned_edges_list = [n if isinstance(n, int) else 1 for n in numberOftoolEdgesList]
+        # 2. 모든 공구의 모든 날에 대한 수명 정보 요청 태스크 생성
+        life_info_tasks = []
+        for i, num_edges in enumerate(cleaned_edges_list):
+            tool_num = i + 1
+            
+            for j in range(1, num_edges + 1):
+                base_params = {**machine_param, "registerTools": tool_num, "toolEdge": j}
+                
+                # 4가지 수명 정보 요청을 태스크 리스트에 추가
+                life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/restToolLife", {**base_params, "restToolLife": 1}))
+                life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/maxToolLife", {**base_params, "maxToolLife": 1}))
+                life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/toolLifeCount", {**base_params, "toolLifeCount": 1}))
+                life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/toolLifeAlarm", base_params))
+
+        if not life_info_tasks:
+            return "등록된 공구의 날 정보가 없습니다."
+
+        # 3. 생성된 모든 수명 정보 태스크를 한 번에 실행
+        all_results = await asyncio.gather(*life_info_tasks)
+
+        # 4. 결과를 올바른 구조로 조합
+        toolLife_info = []
+        task_idx = 0  # 'results' 리스트를 순회하기 위한 인덱스 카운터
+    
+        for i, num_edges in enumerate(cleaned_edges_list):
+            tool_num = i + 1
+             # 날 개수가 유효한 정수일 때만 처리
+            
+            for j in range(1, num_edges + 1):
+                # 4개의 결과가 한 세트
+                result_chunk = all_results[task_idx : task_idx + 4]
+
+                # API 에러 처리: 4개 중 하나라도 에러면 'error'로 표기, 아니면 값 할당
+                rest_life = result_chunk[0] if not result_chunk[0].get("__error__") else "error"
+                max_life = result_chunk[1] if not result_chunk[1].get("__error__") else "error"
+                life_count = result_chunk[2] if not result_chunk[2].get("__error__") else "error"
+                life_alarm = result_chunk[3] if not result_chunk[3].get("__error__") else "error"
+                
+                toolLife_info.append({
+                    "registerTools": tool_num,
+                    "toolEdges": j,
+                    "restToolLife": rest_life,
+                    "maxToolLife": max_life,
+                    "toolLifeCount": life_count,
+                    "toolLifeAlarm": life_alarm
+                })
+                task_idx += 4 # 다음 결과 세트를 위해 인덱스를 4 증가
+
+        return toolLife_info
