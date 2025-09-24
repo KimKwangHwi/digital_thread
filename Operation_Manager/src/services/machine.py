@@ -975,9 +975,11 @@ class MachineService:
         cleaned_edges_list = [n if isinstance(n, int) else 1 for n in numberOftoolEdgesList]
         # 2. 모든 공구의 모든 날에 대한 수명 정보 요청 태스크 생성
         life_info_tasks = []
+        tool_name_tasks = []
         for i, num_edges in enumerate(cleaned_edges_list):
             tool_num = i + 1
             
+            tool_name_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolName", {**machine_param, "registerTools": tool_num}))
             for j in range(1, num_edges + 1):
                 base_params = {**machine_param, "registerTools": tool_num, "toolEdge": j}
                 
@@ -1000,12 +1002,12 @@ class MachineService:
         for i, num_edges in enumerate(cleaned_edges_list):
             tool_num = i + 1
              # 날 개수가 유효한 정수일 때만 처리
-            
+            tool_name = tool_name_tasks[i] if not tool_name_tasks[i].get("__error__") else "error"
             for j in range(1, num_edges + 1):
                 # 4개의 결과가 한 세트
                 result_chunk = all_results[task_idx : task_idx + 4]
 
-                # API 에러 처리: 4개 중 하나라도 에러면 'error'로 표기, 아니면 값 할당
+                # API 에러 처리: 5개 중 하나라도 에러면 'error'로 표기, 아니면 값 할당
                 rest_life = result_chunk[0] if not result_chunk[0].get("__error__") else "error"
                 max_life = result_chunk[1] if not result_chunk[1].get("__error__") else "error"
                 life_count = result_chunk[2] if not result_chunk[2].get("__error__") else "error"
@@ -1013,6 +1015,7 @@ class MachineService:
                 
                 toolLife_info.append({
                     "registerTools": tool_num,
+                    "toolName": tool_name,
                     "toolEdges": j,
                     "restToolLife": rest_life,
                     "maxToolLife": max_life,
