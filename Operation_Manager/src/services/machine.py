@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime
 import re
 from typing import Dict
+from typing import List
 import os
 from pathlib import Path
 import uuid
@@ -13,6 +14,10 @@ from src.schemas.machine import (
 )
 from src.utils.exceptions import CustomException, ExceptionEnum
 import logging
+
+from langchain_huggingface import HuggingFaceEmbeddings
+import pickle
+import aiofiles
 
 ERROR_STATUS_FILE_PATH = Path(__file__).resolve().parent.parent / "error_status.json"
 
@@ -903,7 +908,7 @@ class MachineService:
 
         try:
             # JSON 파일을 비동기적으로 읽기
-            with open(json_file_path, 'r', encoding='utf-8') as f:
+            async with aiofiles.open(json_file_path, 'r', encoding='utf-8') as f:
                 file_content = f.read()
 
             api_data = json.loads(file_content)
@@ -1025,3 +1030,149 @@ class MachineService:
                 task_idx += 4 # 다음 결과 세트를 위해 인덱스를 4 증가
 
         return toolLife_info
+
+    async def get_categoryOfQuery(self, query: str):
+        """
+        - 유사도 검사를 통해 사용자의 질문이 어떤 카테고리에 속하는지 판단합니다.
+        - FAISS 벡터스토어에서 가장 유사한 질문을 찾아 해당 질문의 카테고리를 반환합니다.
+        Args:
+            query (str): 사용자의 질문.
+        Returns:
+            가장 유사한 질문의 카테고리.
+        
+        """
+        # 임베딩 객체 (검색 시에도 임베딩이 필요할 수 있습니다)
+        # embeddings = HuggingFaceEmbeddings(model_name='jhgan/ko-sroberta-multitask', model_kwargs={"device": "cpu"})
+
+        # 저장된 FAISS 벡터스토어 파일 경로
+        faiss_store_path = Path(__file__).parent / "faiss_store_category.pkl"
+
+        # pickle 파일에서 vectorstore 로드
+        with open(faiss_store_path, "rb") as f:
+            vectorstore = pickle.load(f)
+
+
+        # 사용 예시
+
+        # retriever.invoke 대신 vectorstore.similarity_search_with_score를 사용합니다.
+        # matches_with_scores = vectorstore.similarity_search_with_score(query, k=1)
+        results = vectorstore.similarity_search(query, k=1)
+        return results[0].metadata['category_name']
+
+            
+    async def get_api_data(self, category: str):
+        """
+        - get_categoryOfQuery로부터 받은 카테고리에 해당하는 API 데이터를 반환합니다.
+        - 장비 기본 정보, 채널 상태 정보, 축 상태 및 제어, 스핀들 상태 및 제어, 이송 속도 및 오버라이드, 공구 정보, NC 프로그램 실행 정보, 좌표계 및 오프셋, 알람 및 에러, PLC 및 변수, 가공 상태 및 집계, 센서 데이터 수집 중 하나를 수정하지 않고 파라미터로 받습니다.
+        Args:
+            category (str): get_categoryOfQuery로부터 받은 카테고리 이름.
+        """
+        file_path = Path(__file__).parent / "torus_manual" / "api_data_by_category.json"
+        
+        try:
+            # 파일을 비동기적으로 열고 읽습니다.
+            async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
+                file_content = await f.read()
+
+            api_data = json.loads(file_content)
+            api_info = api_data.get(category)
+
+            if api_info:
+                # 성공 시 반환 형식을 일관성 있게 유지하는 것이 좋습니다.
+                return {
+                    "success": True,
+                    "data": api_info 
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"엔드포인트 '{category}'에 대한 정보를 찾을 수 없습니다.",
+                }
+
+        except FileNotFoundError:
+            return {
+                "success": False,
+                "message": "API 데이터 파일을 찾을 수 없습니다. 경로를 확인하세요."
+            }
+        except json.JSONDecodeError:
+            return {
+                "success": False,
+                "message": "API 데이터 JSON 파일의 형식이 잘못되었습니다."
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"알 수 없는 오류가 발생했습니다: {str(e)}"
+            }
+            
+    async def get_params_info(self, endpoint_list: List[str]):
+        """
+        - 여러 API 엔드포인트에 대한 필수 파라미터 정보를 한 번에 조회합니다.
+        Args:
+            endpoint_list: List[str] : API 엔드포인트.
+            
+        """
+        results = {}
+        
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        json_file_path = os.path.join(current_dir, '..', 'torus_manual/uri_params.json')
+
+        try:
+            # JSON 파일을 비동기적으로 읽기
+            async with aiofiles.open(json_file_path, 'r', encoding='utf-8') as f:
+                file_content = await f.read()
+
+            api_data = json.loads(file_content)
+            
+
+            for endpoint in endpoint_list:
+                endpoint_info = api_data.get(endpoint)
+
+                # 값이 존재할 경우에만 required_params를 찾습니다.
+                if endpoint_info:
+                    params_info = endpoint_info.get("required_params")
+                else:
+                    params_info = None  # 키가 없는 경우 None으로 처리
+                
+                results[endpoint] = params_info
+                
+
+            return results
+
+        except FileNotFoundError:
+            return {
+                "__error__": True,
+                "message": "URI 및 파라미터 JSON 파일을 찾을 수 없습니다. 경로를 확인하세요."
+            }
+        except json.JSONDecodeError:
+            return {
+                "__error__": True,
+                "message": "URI 및 파라미터 JSON 파일의 형식이 잘못되었습니다."
+            }
+        except Exception as e:
+            return {
+            "__error__": True,
+            "message": f"알 수 없는 오류가 발생했습니다: {str(e)}"
+            }
+            
+    async def get_async_data(self, endpoint_list: List[str], params_list: List[dict]):
+        """
+        - 여러 API 엔드포인트에 대해 비동기적으로 데이터를 조회합니다.
+        - endpoint_list와 params_list의 길이는 같아야 하며, 각 인덱스에 해당하는 엔드포인트와 파라미터로 요청이 이루어집니다.
+        - 필요한 파라미터 값을 알고 있는 엔드포인트에 대해서만 호출해야 합니다.
+        
+        Args:
+            endpoint_list (List[str]): 조회할 API 엔드포인트 리스트.
+            params_list (List[dict]): 각 엔드포인트에 대한 파라미터 딕셔너리 리스트. 
+        """
+        
+        if len(endpoint_list) != len(params_list):
+            return "엔드포인트 리스트와 파라미터 리스트의 길이는 같아야 합니다."
+        
+        asyncio_tasks = []
+        for endpoint, params in zip(endpoint_list, params_list):
+            asyncio_tasks.append(self.machine_repo.get_data(endpoint, params))
+        
+        results = await asyncio.gather(*asyncio_tasks)
+        
+        return results
