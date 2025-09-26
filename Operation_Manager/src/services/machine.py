@@ -733,13 +733,13 @@ class MachineService:
         • locationNumber - 공구가 매거진에 탑재된 위치 번호 (필수: tools/registerTools=k)(INTEGER)
         • toolName - 공구 이름 (필수: tools/registerTools=k)(STRING)
         • numberOfEdges - 공구 날의 총 개수 (필수: tools/registerTools=k)(INTEGER)
-        • toolEnabled - 공구 영역 등록 및 매거진 탑재 여부 0: 공구 영역 미등록, 매거진 미탑재 상태, 1: 공구 영역 등록, 매거진 미탑재 상태, 2: 공구 영역 등록, 매거진 탑재 상태(INTEGER)
+        • toolEnabled - 공구 영역 등록 및 매거진 탑재 여부 0: 공구 영역 미등록, 매거진 미탑재 상태, 1: 공구 영역 등록, 매거진 미탑재 상태, 2: 공구 영역 등록, 매거진 탑재 상태(INTEGER) (필수: toolGroupNumber=l. l번째 공구 그룹)
         • magazineNumber - 공구가 탑재된 매거진 번호 (필수: tools/registerTools=k)(INTEGER)
         • sisterToolNumber - 할당된 대체 공구 번호 (필수: tools/registerTools=k)(INTEGER)
         • toolLifeUnit - 공구 수명 측정 단위 기준 (필수: tools/registerTools=k, toolLifeUnit=l)(INTEGER)
         • toolGroupNumber - 공구가 참조된 공구 그룹 번호 리스트 (필수: tools/registerTools=k)(LIST[INTEGER])
         • toolUseOrderNumber - 그룹 내 공구 사용 순서 (FANUC 전용) (필수: tools/registerTools=k)(INTEGER)
-        • toolStatus - 공구의 사용 상태 0 : Not enabled, 1 : Active tool, 2 : Enabled, 4 : Disabled, 8 : Measured, 9: 미사용 공구, 10 : 정상 수명 공구, 11 : Tool data is available (using), 12 : This tool is registered (available), 13 : This tool has expired, 14 : This tool was skipped, 16 : Prewarning limit reached , 32 : Tool being changed , 64 : Fixed location coded, 128 : Tool was in use , 256 : Tool is in the buffer magazine with transport order, 512 : Ignore disabled state of tool, 1024 : Tool must be unloaded, 2048 : Tool must be loaded, 4096 : Tool is a master tool, 8192 : Reserved, 16384 : Tool is marked for 1:1 exchange, 32768 : Tool is being used as a manual tool (필수: tools/registerTools=k)(INTEGER)
+        • toolStatus - 공구의 사용 상태 0 : Not enabled, 1 : Active tool, 2 : Enabled, 4 : Disabled, 8 : Measured, 9: 미사용 공구, 10 : 정상 수명 공구, 11 : Tool data is available (using), 12 : This tool is registered (available), 13 : This tool has expired, 14 : This tool was skipped, 16 : Prewarning limit reached , 32 : Tool being changed , 64 : Fixed location coded, 128 : Tool was in use , 256 : Tool is in the buffer magazine with transport order, 512 : Ignore disabled state of tool, 1024 : Tool must be unloaded, 2048 : Tool must be loaded, 4096 : Tool is a master tool, 8192 : Reserved, 16384 : Tool is marked for 1:1 exchange, 32768 : Tool is being used as a manual tool (필수: tools/registerTools=k, toolStatus = l. l번째 공구 그룹)(INTEGER)
 
         === 공구 날(Edge) 상세 정보 ===
         # 아래 항목들은 .../tools/toolEdge 및 .../registerTools/toolEdge 경로에서 동일하게 사용됩니다.

@@ -737,7 +737,7 @@
   },
   "/machine/toolArea/tools/toolEnabled": {
     "description": "공구 영역 등록 및 매거진 탑재 여부. (공구영역/매거진 -> 0: 미등록/미탑재, 1: 등록/미탑재, 2: 등록/탑재)",
-    "required_params": "machine, toolArea, tools"
+    "required_params": "machine, toolArea, tools, toolGroupNumber"
   },
   "/machine/toolArea/tools/magazineNumber": {
     "description": "공구가 탑재된 매거진 번호.",
@@ -761,7 +761,7 @@
   },
   "/machine/toolArea/tools/toolStatus": {
     "description": "공구의 사용 상태. 0: Not enabled, 1: Active tool, 2: Enabled, 4: Disabled, 8: Measured, 9: 미사용 공구, 10: 정상 수명 공구, 11: Tool data is available (using), 12: This tool is registered (available), 13: This tool has expired, 14: This tool was skipped, 16: Prewarning limit reached, 32: Tool being changed, 64: Fixed location coded, 128: Tool was in use, 256: Tool is in the buffer magazine with transport order, 512: Ignore disabled state of tool, 1024: Tool must be unloaded, 2048: Tool must be loaded, 4096: Tool is a master tool, 8192: Reserved, 16384: Tool is marked for 1:1 exchange, 32768: Tool is being used as a manual tool / SIEMENS는 Tool Status의 값이 합쳐져서 출력됩니다. 예를 들어 131이 출력되면 1 + 2 + 128 = 131 (1:Active tool, 2:Enabled, 128:Tool was in use) 3가지 상태가 적용된 것입니다.",
-    "required_params": "machine, toolArea, tools"
+    "required_params": "machine, toolArea, tools, toolStatus"
   },
   "/machine/toolArea/tools/toolEdge/toolType": {
     "description": "공구 유형. 0: Not defined, 10: General-purpose tool, 11: Threading tool (Siemens에서는 540), 12: Grooving tool, 13: Round-nose tool, 14: Point nose straight tool, 15: Versatile tool, 20: Drill, 21: Counter sink tool, 22: Flat end mill, 23: Ball end mill, 24: Tap (Siemens에서는 240), 25: Reamer, 26: Boring tool, 27: Face mill, 50: Radius end mill, 51: 면취, 52: 선삭, 53: 홈삽입, 54: 나사절삭, 55: 선삭드릴, 56: 선삭탭, 100: Milling tool, 110: Ball nose end mill, 111: Conical ball end, 120: End mill, 121: End mill corner rounding, 130: Angle head cutter, 131: Corner rounding angle head cutter, 140: Facing tool, 145: Thread cutter, 150: Side mill, 151: Saw, 155: Bevelled cutter, 156: Bevelled cutter corner, 157: Tap. die-sink. cutter, 160: Drill&thread cut., 200: Twist drill, 205: Solid drill, 210: Boring bar, 220: Center drill, 230: Countersink, 231: Counterbore, 240: Tap, 241: Fine tap, 242: Tap, Whitworth, 250: Reamer, 500: Roughing tool, 510: Finishing tool, 520: Plunge cutter, 530: Cutting tool, 540: Threading tool, 550: Button tool, 560: Rotary drill, 580: 3D turning probe, 585: Calibrating tool, 700: Slotting saw, 710: 3D probe, 711: Edge finder, 712: Mono probe, 713: L probe, 714: Star probe, 725: Calibrating tool, 730: Stop, 731: Mandrel, 732: Steady rest, 900: Auxiliary tools",
@@ -821,7 +821,7 @@
   },
   "/machine/toolArea/registerTools/toolEnabled": {
     "description": "공구 영역 등록 및 매거진 탑재 여부.",
-    "required_params": "machine, toolArea, registerTools"
+    "required_params": "machine, toolArea, registerTools, toolGroupNumber"
   },
   "/machine/toolArea/registerTools/magazineNumber": {
     "description": "공구가 탑재된 매거진 번호.",
@@ -845,7 +845,7 @@
   },
   "/machine/toolArea/registerTools/toolStatus": {
     "description": "공구의 사용 상태.",
-    "required_params": "machine, toolArea, registerTools"
+    "required_params": "machine, toolArea, registerTools, toolStatus"
   },
   "/machine/toolArea/tools/toolEdge/geoLengthOffset": {
     "description": "공구 길이 X 보정값. **geoLengthOffset=m : m번째 공구 그룹**",
