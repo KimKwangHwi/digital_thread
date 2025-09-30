@@ -35,37 +35,22 @@ def auto_expand_context(user_request: str) -> str:
 async def setup_resources():
     @mcp.resource(uri="data://torus_md", mime_type="text/markdown", description="TORUS 데이터 모델 문서")
     def torus_md_res() -> str:
-        with open("torus_markdown_short.md", encoding="utf-8") as f:
+        with open("torus.md", encoding="utf-8") as f:
             return f.read()
 
 async def setup_tools():
     project_service = await get_project_service()
     machine_service = await get_machine_service()
 
-    mcp.tool(machine_service.get_machine_list)
+    
     mcp.tool(machine_service.upload_torus_file)
-
-    mcp.tool(machine_service.get_machine_data)
-    mcp.tool(machine_service.get_channel_data)
-    mcp.tool(machine_service.get_axis_data)
-    mcp.tool(machine_service.get_spindle_data)
-    mcp.tool(machine_service.get_feed_data)
-    mcp.tool(machine_service.get_workStatus_data)
-    mcp.tool(machine_service.get_activeTool_data)
-    mcp.tool(machine_service.get_currentProgram_data)
-    mcp.tool(machine_service.get_workOffset_data)
-    mcp.tool(machine_service.get_alarm_data)
-    mcp.tool(machine_service.get_variable_data)
-    mcp.tool(machine_service.get_plc_data)
-    mcp.tool(machine_service.get_toolArea_data)
-    mcp.tool(machine_service.get_buffer_data)
+    
+    mcp.tool(machine_service.get_machine_list)
     mcp.tool(machine_service.get_error_info_by_code)
     mcp.tool(machine_service.get_description_and_params_by_uri)
-    
-    #mcp.tool(machine_service.get_categoryOfQuery)
     mcp.tool(machine_service.get_params_info)
     mcp.tool(machine_service.get_async_data)
-
+ 
     mcp.tool(project_service.get_project_list)
     mcp.tool(project_service.extract_workplan_and_nc)
     mcp.tool(project_service.get_nc_code)
