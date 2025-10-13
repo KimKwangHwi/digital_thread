@@ -3,8 +3,6 @@ endpoint 형식:
         • 일반 정보: /machine/{leaf_node}
         • NC 메모리 정보: /machine/ncMemory/{leaf_node}
 
-        필수 파라미터: machine=i  (i번째 장비)
-
         === 일반 장비 정보 ===
         • cncModel - 해당 장비에 탑재된 NC의 모델명(STRING)
         • numberOfChannels - 장비에서 사용 가능한 채널(계통)의 개수(INTEGER)
@@ -29,7 +27,6 @@ endpoint 형식:
 
 [계통 별 기록되는 채널의 상태 정보(리스트 구조)]
 endpoint 형식: /machine/channel/{leaf_node}
-        필수 파라미터: machine=i (i번째 장비), channel=j (j번째 채널)
     
         사용 가능한 leaf_node:
         • channelEnabled  - 해당 채널의 사용 가능 여부(BOOLEAN)
@@ -52,9 +49,7 @@ endpoint 형식: /machine/channel/{leaf_node}
 endpoint 형식: 
         • 일반 정보: /machine/channel/axis/{leaf_node}
         • 전력 정보: /machine/channel/axis/axisPower/{leaf_node}
-        
-        필수 파라미터: machine=i (i번째 장비), channel=j (j번째 채널), axis=k (k번째 축)
-    
+            
          === 일반 축 정보 leaf_node ===
         • machinePosition - 기계 좌표계 기준 현재 위치(REAL)
         • workPosition - 공작물 좌표계 기준 현재 위치(REAL)
@@ -91,8 +86,6 @@ endpoint 형식:
         • RPM 정보: /machine/channel/spindle/rpm/{leaf_node}
         • 전력 정보: /machine/channel/spindle/spindlePower/{leaf_node}
 
-        필수 파라미터: machine=i, channel=j, spindle=k(k번째 스핀들)
-
         === 일반 스핀들 정보 ===
         • spindleLoad - 스핀들에 걸리는 부하(REAL)
         • spindleOverride - 스핀들 속도 오버라이드 비율(REAL)
@@ -122,8 +115,6 @@ endpoint 형식:
         • 오버라이드 정보: /machine/channel/feed/{leaf_node}
         • 이송 속도 정보: /machine/channel/feed/feedRate/{leaf_node}
 
-        필수 파라미터: machine=i (i번째 장비), channel=j (j번째 채널)
-
         === 이송 오버라이드 정보 ===
         • feedOverride - 가공 이송 속도 오버라이드 비율(REAL)
         • rapidOverride - 급속 이송 속도 오버라이드 비율(REAL)
@@ -139,13 +130,11 @@ endpoint 형식:
         - params={"machine": 1, "channel": 1}
 
 
-
 [가공 작업의 진척 상태 정보]
 endpoint 형식:
         • 가공 수량 정보: /machine/channel/workStatus/workCounter/{leaf_node}
         • 가공 시간 정보: /machine/channel/workStatus/machiningTime/{leaf_node}
 
-        필수 파라미터: machine=i, channel=j, workStatus=k (k번째 작업물)
 
         === 가공 수량 정보 ===
         • workCounter/currentWorkCounter - 현재까지 가공한 수량(INTEGER)
@@ -169,8 +158,6 @@ endpoint 형식:
         • 일반 정보: /machine/channel/activeTool/{leaf_node}
         • 공구 날 정보: /machine/channel/activeTool/toolEdge/{leaf_node}
         • 공구 수명 정보: /machine/channel/activeTool/toolEdge/toolLife/{leaf_node}
-
-        필수 파라미터: machine=i, channel=j
 
         === 일반 공구 정보 ===
         • locationNumber - 공구가 매거진에 탑재된 위치 번호(INTEGER)
@@ -240,7 +227,6 @@ endpoint 형식:
         • 메인 파일 정보: /machine/channel/currentProgram/mainFile/{leaf_node}
         • 제어 옵션 정보: /machine/channel/currentProgram/controlOption/{leaf_node}
 
-        필수 파라미터: machine=i, channel=j 와 아래 각 항목별 파라미터
 
         === 일반 프로그램 정보 ===
         • sequenceNumber - 현재 실행 중인 시퀀스 번호(N 코드)(INTEGER)
@@ -255,27 +241,27 @@ endpoint 형식:
         • currentDepthLevel - 현재 프로그램의 레벨 (메인, 서브루틴 등)(INTEGER)
 
         === G 코드 모달 정보 ===
-        • modal/modalIndex - G 코드 인덱스 (필수 파라미터: modal=k. k번째 G 코드 인덱스)(INTEGER)
-        • modal/modalCode - G 코드 문자열 (필수 파라미터: modal=k. k번째 G 코드 인덱스)(STRING)
+        • modal/modalIndex - G 코드 인덱스(INTEGER)
+        • modal/modalCode - G 코드 문자열(STRING)
 
         === 실행 블록 정보 (SIEMENS) ===
-        • overallBlock/blockCounter - 블록 카운터 (필수 파라미터: overallBlock=k. k번째 프로그램 레벨)(INTEGER)
-        • overallBlock/programName - 프로그램 이름 (필수 파라미터: overallBlock=k. k번째 프로그램 레벨)(STRING)
+        • overallBlock/blockCounter - 블록 카운터(INTEGER)
+        • overallBlock/programName - 프로그램 이름(STRING)
 
         === 중단점 블록 정보 (SIEMENS) ===
-        • interruptBlock/depthLevel - 중단점 블록의 프로그램 레벨 (필수 파라미터: interruptBlock=k. k번째 프로그램 레벨)(INTEGER)
-        • interruptBlock/blockCounter - 중단점 블록의 카운터 (필수 파라미터: interruptBlock=k. k번째 프로그램 레벨)(INTEGER)
-        • interruptBlock/programName - 중단점 블록의 프로그램 이름 (필수 파라미터: interruptBlock=k. k번째 프로그램 레벨)(STRING)
-        • interruptBlock/blockData - 중단점 블록 데이터 (필수 파라미터: interruptBlock=k. k번째 프로그램 레벨)(STRING)
-        • interruptBlock/searchType - 중단점 검색 유형 (필수 파라미터: interruptBlock=k. k번째 프로그램 레벨)(INTEGER)
-        • interruptBlock/mainProgramName - 중단점의 메인 프로그램 이름 (필수 파라미터 : interruptBlock=k. k번째 프로그램 레벨)(STRING)
+        • interruptBlock/depthLevel - 중단점 블록의 프로그램 레벨 (INTEGER)
+        • interruptBlock/blockCounter - 중단점 블록의 카운터(INTEGER)
+        • interruptBlock/programName - 중단점 블록의 프로그램 이름 (STRING)
+        • interruptBlock/blockData - 중단점 블록 데이터 (STRING)
+        • interruptBlock/searchType - 중단점 검색 유형 (INTEGER)
+        • interruptBlock/mainProgramName - 중단점의 메인 프로그램 이름 (STRING)
 
         === 공작물 좌표계 오프셋 정보 ===
         • currentTotalWorkOffset/workOffsetIndex - G 코드 인덱스(INTEGER)
-        • currentTotalWorkOffset/workOffsetValue - 축별 총 오프셋 값 (필수 파라미터 : workOffsetValue=k. k번째 축)(REAL)
-        • currentTotalWorkOffset/workOffsetRotation - 축별 총 회전 오프셋 값 (필수 파라미터: workOffsetRotation=k. k번째 축)(REAL)
-        • currentTotalWorkOffset/workOffsetScalingFactor - 축별 총 스케일링 값 (필수 파라미터: workOffsetScalingFactor=k. k번째 축)(REAL)
-        • currentTotalWorkOffset/workOffsetMirroringEnabled - 축별 미러링 활성화 여부 (필수 파라미터: workOffsetMirroringEnabled=k. k번째 축)(BOOLEAN)
+        • currentTotalWorkOffset/workOffsetValue - 축별 총 오프셋 값 (REAL)
+        • currentTotalWorkOffset/workOffsetRotation - 축별 총 회전 오프셋 값 (REAL)
+        • currentTotalWorkOffset/workOffsetScalingFactor - 축별 총 스케일링 값 (REAL)
+        • currentTotalWorkOffset/workOffsetMirroringEnabled - 축별 미러링 활성화 여부 (BOOLEAN)
 
         === 현재 실행 파일 정보 ===
         • currentFile/programName - 파일명(STRING)
@@ -295,7 +281,7 @@ endpoint 형식:
         • controlOption/singleBlock - 싱글 블록 실행 여부(BOOLEAN)
         • controlOption/dryRun - 드라이 런 실행 여부(BOOLEAN)
         • controlOption/optionalStop - 옵셔널 스톱(M01) 활성화 여부(BOOLEAN)
-        • controlOption/blockSkip - 블록 스킵 활성화 여부 리스트 (필수 파라미터: blockSkip=k. k번째 블록)(BOOLEAN)
+        • controlOption/blockSkip - 블록 스킵 활성화 여부 리스트 (BOOLEAN)
         • controlOption/machineLock - 머신 락 활성화 여부(BOOLEAN)
 
         예시:
@@ -319,11 +305,11 @@ endpoint 형식:
         필수 파라미터: machine=i, channel=j, workOffset=k 와 아래 각 항목별 파라미터
 
         === 공작물 좌표계 오프셋 정보 ===
-        • workOffsetValue - G 코드 인덱스에 대한 축별 오프셋 값 (필수 파라미터: workOffsetValue=l. l번째 축)(REAL)
-        • workOffsetRotation - 축별 오프셋 회전량 (SIEMENS 전용) (필수 파라미터: workOffsetRotation=l. l번째 축)(REAL)
-        • workOffsetScalingFactor - 축별 오프셋 확장량 (SIEMENS 전용) (필수 파라미터: workOffsetScalingFactor=l. l번째 축)(REAL)
-        • workOffsetMirroringEnabled - 축별 미러링 활성화 여부 (SIEMENS 전용) (필수 파라미터: workOffsetMirroringEnabled=l. l번째 축)(BOOLEAN)
-        • workOffsetFine - 축별 오프셋 Fine 값 (SIEMENS 전용) (필수 파라미터: workOffsetFine=l. l번째 축)(REAL)
+        • workOffsetValue - G 코드 인덱스에 대한 축별 오프셋 값 (REAL)
+        • workOffsetRotation - 축별 오프셋 회전량 (SIEMENS 전용)(REAL)
+        • workOffsetScalingFactor - 축별 오프셋 확장량 (SIEMENS 전용) (REAL)
+        • workOffsetMirroringEnabled - 축별 미러링 활성화 여부 (SIEMENS 전용) (BOOLEAN)
+        • workOffsetFine - 축별 오프셋 Fine 값 (SIEMENS 전용) (REAL)
 
         예시:
         # G54(workOffset=1) 좌표계의 1번째 축(workOffsetValue=1) 오프셋 값을 조회
@@ -335,16 +321,12 @@ endpoint 형식:
 endpoint 형식:
         • 알람 정보: /machine/channel/alarm/{leaf_node}
 
-        필수 파라미터: machine=i, channel=j, alarm=k(k번째 알람)
-
         === 알람 정보 ===
         • (수정하자) - 해당 계통에서 발생한 모든 알람에 대한 Text, Category, Number, raisedTimeStamp를 리스트로 나타내는 문자열(JSON 형태)(INTEGER)
         • alarmText - 알람 상세 내용 (STRING)
         • alarmCategory - 알람 유형 (STRING)
         • alarmNumber - 알람 번호 (STRING)
         • raisedTimeStamp - 알람 발생 시각 (STRING)
-
-        
 
         예시:
         # 1번째 발생 알람의 상세 내용을 조회
@@ -354,7 +336,7 @@ endpoint 형식:
 [사용자 변수]
 
 === 사용자 변수 정보 ===
-        • userVariable - 사용자 변수 값 (필수: variable=k. k번째 사용자 변수)(REAL)
+        • userVariable - 사용자 변수 값(REAL)
         
         endpoint 형식: /machine/channel/variable/{leaf_node}
 
@@ -363,22 +345,18 @@ endpoint 형식:
 
 endpoint 형식:
         • 메모리 정보: /machine/pic/memory/{leaf_node}
-        
-        필수 파라미터: machine=i, channel=j
-
-        필수 파라미터: machine=i 와 아래 각 항목별 주소 파라미터 {leaf_node}=j
 
         === PLC 메모리 정보 ===
-        • rbitBlock - 읽기 전용 Bit 데이터 블록 (필수: rbitBlock=j. rbitBlock의 어드레스)(BOOLEAN)
-        • bitBlock - 읽기/쓰기 가능 Bit 데이터 블록 (필수: bitBlock=j. bitBlock의 어드레스)(BOOLEAN)
-        • rbyteBlock - 읽기 전용 Byte 데이터 블록 (필수: rbyteBlock=j. rbyteBlock의 어드레스)(BYTE)
-        • byteBlock - 읽기/쓰기 가능 Byte 데이터 블록 (필수: byteBlock=j. byteBlock의 어드레스)(BYTE)
-        • rwordBlock - 읽기 전용 Word(2byte) 데이터 블록 (필수: rwordBlock=j. rwordBlock의 어드레스)(WORD)
-        • wordBlock - 읽기/쓰기 가능 Word(2byte) 데이터 블록 (필수: wordBlock=j. wordBlock의 어드레스)(WORD)
-        • rdwordBlock - 읽기 전용 DWord(4byte) 데이터 블록 (필수: rdwordBlock=j. rdwordBlock의 어드레스)(DWORD)
-        • dwordBlock - 읽기/쓰기 가능 DWord(4byte) 데이터 블록 (필수: dwordBlock=j. dwordBlock의 어드레스)(DWORD)
-        • rqwordBlock - 읽기 전용 QWord(8byte) 데이터 블록 (필수: rqwordBlock=j. rqwordBlock의 어드레스)(QWORD)
-        • qwordBlock - 읽기/쓰기 가능 QWord(8byte) 데이터 블록 (필수: qwordBlock=j. qwordBlock의 어드레스)(QWORD)
+        • rbitBlock - 읽기 전용 Bit 데이터 블록 (BOOLEAN)
+        • bitBlock - 읽기/쓰기 가능 Bit 데이터 블록 (BOOLEAN)
+        • rbyteBlock - 읽기 전용 Byte 데이터 블록 (BYTE)
+        • byteBlock - 읽기/쓰기 가능 Byte 데이터 블록 (BYTE)
+        • rwordBlock - 읽기 전용 Word(2byte) 데이터 블록 (WORD)
+        • wordBlock - 읽기/쓰기 가능 Word(2byte) 데이터 블록 (WORD)
+        • rdwordBlock - 읽기 전용 DWord(4byte) 데이터 블록 (DWORD)
+        • dwordBlock - 읽기/쓰기 가능 DWord(4byte) 데이터 블록 (DWORD)
+        • rqwordBlock - 읽기 전용 QWord(8byte) 데이터 블록 (QWORD)
+        • qwordBlock - 읽기/쓰기 가능 QWord(8byte) 데이터 블록 (QWORD)
 
         예시:
         # 100번 주소의 읽기 전용 Bit 블록 값을 조회
@@ -402,12 +380,6 @@ endpoint 형식:
         • 등록순 기준 공구 날 정보: /machine/toolArea/registerTools/toolEdge/{leaf_node}
         • 등록순 기준 공구 수명 정보: /machine/toolArea/registerTools/toolEdge/toolLife/{leaf_node}
 
-        필수 파라미터: machine=i, toolArea = j(j번째 공구 영역)  와 아래 각 항목별 파라미터가 계층적으로 필요합니다.
-        (예: machine=i, toolArea=j, tools=k, toolEdge=l, {leaf_node}=m)
-        ※ tools=k : 지정된 공구 번호 (k번째 공구)
-        ※ registerTools=k : NC에 설정된 순서에 따른 인덱스 번호 (k번째 공구 인덱스 번호)
-        
-
         === 일반 공구 영역 정보 ===
         • toolAreaEnabled - 해당 공구 영역 사용 가능 여부 (BOOLEAN)
         • numberOfMagazines - 사용 가능한 매거진 개수 (INTEGER)
@@ -417,44 +389,43 @@ endpoint 형식:
         • numberOfToolOffsets - 등록된 공구 오프셋의 개수 (INTEGER)
 
         === 매거진 정보 ===
-        • magazine/magazineEnabled - 해당 매거진 사용 가능 여부 (필수: magazine=k. k번째 매거진)(BOOLEAN)
-        • magazine/magazineName - 매거진 이름 (SIEMENS 전용) (필수: magazine=k. k번째 매거진)(STRING)
-        • magazine/numberOfRealLocations - 매거진의 물리적 포트(위치) 개수 (필수: magazine=k. k번째 매거진)(INTEGER)
-        • magazine/magazinePhysicalNumber - 매거진의 물리적 번호 (필수: magazine=k. k번째 매거진)(INTEGER)
-        • magazine/numberOfLoadedTools - 해당 매거진에 탑재된 공구 개수 (필수: magazine=k. k번째 매거진)(INTEGER)
+        • magazine/magazineEnabled - 해당 매거진 사용 가능 여부 (BOOLEAN)
+        • magazine/magazineName - 매거진 이름 (SIEMENS 전용) (STRING)
+        • magazine/numberOfRealLocations - 매거진의 물리적 포트(위치) 개수 (INTEGER)
+        • magazine/magazinePhysicalNumber - 매거진의 물리적 번호 (INTEGER)
+        • magazine/numberOfLoadedTools - 해당 매거진에 탑재된 공구 개수 (INTEGER)
 
-        === 공구 상세 정보 (T코드: tools=k / 등록순: registerTools=k) ===
+        === 공구 상세 정보 ===
         # 아래 항목들은 tools와 registerTools 경로에서 동일하게 사용됩니다. (예: /machine/toolArea/tools/toolName)
-        • locationNumber - 공구가 매거진에 탑재된 위치 번호 (필수: tools/registerTools=k)(INTEGER)
-        • toolName - 공구 이름 (필수: tools/registerTools=k)(STRING)
-        • numberOfEdges - 공구 날의 총 개수 (필수: tools/registerTools=k)(INTEGER)
-        • toolEnabled - 공구 영역 등록 및 매거진 탑재 여부 0: 공구 영역 미등록, 매거진 미탑재 상태, 1: 공구 영역 등록, 매거진 미탑재 상태, 2: 공구 영역 등록, 매거진 탑재 상태(INTEGER) (필수: toolGroupNumber=l. l번째 공구 그룹)
-        • magazineNumber - 공구가 탑재된 매거진 번호 (필수: tools/registerTools=k)(INTEGER)
-        • sisterToolNumber - 할당된 대체 공구 번호 (필수: tools/registerTools=k)(INTEGER)
-        • toolLifeUnit - 공구 수명 측정 단위 기준 (필수: tools/registerTools=k, toolLifeUnit=l)(INTEGER)
-        • toolGroupNumber - 공구가 참조된 공구 그룹 번호 리스트 (필수: tools/registerTools=k)(LIST[INTEGER])
-        • toolUseOrderNumber - 그룹 내 공구 사용 순서 (FANUC 전용) (필수: tools/registerTools=k)(INTEGER)
-        • toolStatus - 공구의 사용 상태 0 : Not enabled, 1 : Active tool, 2 : Enabled, 4 : Disabled, 8 : Measured, 9: 미사용 공구, 10 : 정상 수명 공구, 11 : Tool data is available (using), 12 : This tool is registered (available), 13 : This tool has expired, 14 : This tool was skipped, 16 : Prewarning limit reached , 32 : Tool being changed , 64 : Fixed location coded, 128 : Tool was in use , 256 : Tool is in the buffer magazine with transport order, 512 : Ignore disabled state of tool, 1024 : Tool must be unloaded, 2048 : Tool must be loaded, 4096 : Tool is a master tool, 8192 : Reserved, 16384 : Tool is marked for 1:1 exchange, 32768 : Tool is being used as a manual tool (필수: tools/registerTools=k, toolStatus = l. l번째 공구 그룹)(INTEGER)
+        • locationNumber - 공구가 매거진에 탑재된 위치 번호 (INTEGER)
+        • toolName - 공구 이름 (STRING)
+        • numberOfEdges - 공구 날의 총 개수 (INTEGER)
+        • toolEnabled - 공구 영역 등록 및 매거진 탑재 여부 0: 공구 영역 미등록, 매거진 미탑재 상태, 1: 공구 영역 등록, 매거진 미탑재 상태, 2: 공구 영역 등록, 매거진 탑재 상태(INTEGER) 
+        • magazineNumber - 공구가 탑재된 매거진 번호 (INTEGER)
+        • sisterToolNumber - 할당된 대체 공구 번호 (INTEGER)
+        • toolLifeUnit - 공구 수명 측정 단위 기준 (INTEGER)
+        • toolGroupNumber - 공구가 참조된 공구 그룹 번호 리스트 (LIST[INTEGER])
+        • toolUseOrderNumber - 그룹 내 공구 사용 순서 (FANUC 전용) (INTEGER)
+        • toolStatus - 공구의 사용 상태 0 : Not enabled, 1 : Active tool, 2 : Enabled, 4 : Disabled, 8 : Measured, 9: 미사용 공구, 10 : 정상 수명 공구, 11 : Tool data is available (using), 12 : This tool is registered (available), 13 : This tool has expired, 14 : This tool was skipped, 16 : Prewarning limit reached , 32 : Tool being changed , 64 : Fixed location coded, 128 : Tool was in use , 256 : Tool is in the buffer magazine with transport order, 512 : Ignore disabled state of tool, 1024 : Tool must be unloaded, 2048 : Tool must be loaded, 4096 : Tool is a master tool, 8192 : Reserved, 16384 : Tool is marked for 1:1 exchange, 32768 : Tool is being used as a manual tool (INTEGER)
 
         === 공구 날(Edge) 상세 정보 ===
         # 아래 항목들은 .../tools/toolEdge 및 .../registerTools/toolEdge 경로에서 동일하게 사용됩니다.
-        # 파라미터 예시: (필수: toolArea=j, tools=k, toolEdge=l)
         • toolType - 공구 유형 0: Not defined, 10: General-purpose tool, 11: Threading tool (Siemens에서는 540), 12: Grooving tool, 13: Round-nose tool, 14: Point nose straight tool, 15: Versatile tool, 20: Drill, 21: Counter sink tool, 22: Flat end mill, 23: Ball end mill, 24: Tap (Siemens에서는 240), 25: Reamer, 26: Boring tool, 27: Face mill, 50: Radius end mill, 51: 면취, 52: 선삭, 53: 홈삽입, 54: 나사절삭, 55: 선삭드릴, 56: 선삭탭, 100: Milling tool, 110: Ball nose end mill, 111: Conical ball end, 120: End mill, 121: End mill corner rounding, 130: Angle head cutter, 131: Corner rounding angle head cutter, 140: Facing tool, 145: Thread cutter, 150: Side mill, 151: Saw, 155: Bevelled cutter, 156: Bevelled cutter corner, 157: Tap. die-sink. cutter, 160: Drill&thread cut., 200: Twist drill, 205: Solid drill, 210: Boring bar, 220: Center drill, 230: Countersink, 231: Counterbore, 240: Tap, 241: Fine tap, 242: Tap, Whitworth, 250: Reamer, 500: Roughing tool, 510: Finishing tool, 520: Plunge cutter, 530: Cutting tool, 540: Threading tool, 550: Button tool, 560: Rotary drill, 580: 3D turning probe, 585: Calibrating tool, 700: Slotting saw, 710: 3D probe, 711: Edge finder, 712: Mono probe, 713: L probe, 714: Star probe, 725: Calibrating tool, 730: Stop, 731: Mandrel, 732: Steady rest, 900: Auxiliary tools (INTEGER) (INTEGER)
-        • lengthOffsetNumber - 공구 길이 보정 식별 번호 (필수: lengthOffsetNumber=m. m번째 공구 그룹)(INTEGER)
-        • toolEdge/lengthOffsetNumber - 공구 길이 보정 식별 번호 (필수: lengthOffsetNumber=m. m번째 공구 그룹)(INTEGER)
-        • toolEdge/geoLengthOffset - 공구 길이 X 보정값 (필수: geoLengthOffset=m. m번째 공구 그룹)(REAL)
-        • toolEdge/wearLengthOffset - 공구 길이 X 마모 보정값 (필수: wearLengthOffset=m. m번째 공구 그룹)(REAL)
-        • toolEdge/radiusOffsetNumber - 공구 반경 보정 식별 번호 (필수: radiusOffsetNumber=m. m번째 공구 그룹)(INTEGER)
-        • toolEdge/geoRadiusOffset - 공구 반경 보정값 (필수: geoRadiusOffset=m. m번째 공구 그룹)(REAL)
-        • toolEdge/wearRadiusOffset - 공구 반경 마모 보정값 (필수: wearRadiusOffset=m. m번째 공구 그룹)(REAL)
+        • lengthOffsetNumber - 공구 길이 보정 식별 번호 (INTEGER)
+        • toolEdge/lengthOffsetNumber - 공구 길이 보정 식별 번호 (INTEGER)
+        • toolEdge/geoLengthOffset - 공구 길이 X 보정값 (REAL)
+        • toolEdge/wearLengthOffset - 공구 길이 X 마모 보정값 (REAL)
+        • toolEdge/radiusOffsetNumber - 공구 반경 보정 식별 번호 (INTEGER)
+        • toolEdge/geoRadiusOffset - 공구 반경 보정값 (REAL)
+        • toolEdge/wearRadiusOffset - 공구 반경 마모 보정값 (REAL)
         • toolEdge/edgeEnabled - 공구 날 사용 가능 여부 (BOOLEAN)
-        • toolEdge/geoLengthOffsetZ - 공구 길이 Z 보정값 (필수: geoLengthOffsetZ=m. m번째 공구 그룹)(REAL)
-        • toolEdge/wearLengthOffsetZ - 공구 길이 Z 마모 보정값 (필수: wearLengthOffsetZ=m. m번째 공구 그룹)(REAL)
-        • toolEdge/geoLengthOffsetY - 공구 길이 Y 보정값 (필수: geoLengthOffsetY=m. m번째 공구 그룹)(REAL)
-        • toolEdge/wearLengthOffsetY - 공구 길이 Y 마모 보정값 (필수: wearLengthOffsetY=m. m번째 공구 그룹)(REAL)
-        • toolEdge/geoOffsetNumber - 길이 X,Z, 반경의 식별 번호 (필수: geoOffsetNumber=m. m번째 공구 그룹)(INTEGER)
-        • toolEdge/wearOffsetNumber - 길이 X,Z, 반경 마모값의 식별 번호 (필수: wearOffsetNumber=m. m번째 공구 그룹)(INTEGER)
-        • toolEdge/cuttingEdgePosition - 공구 인선 방향 (필수: cuttingEdgePosition=m. m번째 공구 그룹)(INTEGER)
+        • toolEdge/geoLengthOffsetZ - 공구 길이 Z 보정값(REAL)
+        • toolEdge/wearLengthOffsetZ - 공구 길이 Z 마모 보정값(REAL)
+        • toolEdge/geoLengthOffsetY - 공구 길이 Y 보정값 (REAL)
+        • toolEdge/wearLengthOffsetY - 공구 길이 Y 마모 보정값 (REAL)
+        • toolEdge/geoOffsetNumber - 길이 X,Z, 반경의 식별 번호 (INTEGER)
+        • toolEdge/wearOffsetNumber - 길이 X,Z, 반경 마모값의 식별 번호 (INTEGER)
+        • toolEdge/cuttingEdgePosition - 공구 인선 방향 (INTEGER)
         • toolEdge/tipAngle - 공구의 팁 각도 (REAL)
         • toolEdge/holderAngle - 공구 홀더 각도 (REAL)
         • toolEdge/insertAngle - 공구 인서트 각도 (REAL)
@@ -466,10 +437,9 @@ endpoint 형식:
 
         === 공구 수명 상세 정보 ===
         # 아래 항목들은 .../toolEdge/toolLife 경로에서 동일하게 사용됩니다.
-        # 파라미터 예시: (필수: machine = i, toolArea=j, tools=k, toolEdge=l)
-        • toolLife/maxToolLife - 최대 공구 수명 (필수: maxToolLife=m)(REAL)
-        • toolLife/restToolLife - 잔여 공구 수명 (필수: restToolLife=m)(REAL)
-        • toolLife/toolLifeCount - 현재 공구 사용량 (필수: toolLifeCount=m)(REAL)
+        • toolLife/maxToolLife - 최대 공구 수명 (REAL)
+        • toolLife/restToolLife - 잔여 공구 수명 (REAL)
+        • toolLife/toolLifeCount - 현재 공구 사용량 (REAL)
         • toolLife/toolLifeAlarm - 공구 수명 도달 경고 설정값 (REAL)
 
         예시:
@@ -494,9 +464,6 @@ endpoint 형식:
         • 버퍼 정보: /machine/buffer/{leaf_node}
         • 스트림 정보: /machine/buffer/stream/{leaf_node}
 
-        필수 파라미터: machine=i, buffer= j(j번째 버퍼) 와 아래 각 항목별 파라미터가 계층적으로 필요합니다.
-        (예: machine=i, buffer=j, stream=k)
-
         === 버퍼 정보 ===
         • bufferEnabled - 해당 버퍼 사용 가능 여부 (BOOLEAN)
         • numberOfStream - 해당 버퍼의 최대 스트림 개수 (INTEGER)
@@ -508,14 +475,14 @@ endpoint 형식:
         • frequencyOfStream - 모든 스트림에 공통으로 적용할 수집 주파수 (Hz)(INTEGER)
 
         === 스트림 채널 정보 ===
-        • stream/streamEnabled - 해당 스트림 사용 가능 여부 (필수: stream=k. k번째 스트림)(BOOLEAN)
-        • stream/streamFrequency - 해당 스트림의 수집 주파수 (Hz) (필수: stream=k. k번째 스트림)(INTEGER)
-        • stream/streamCategory - 수집 대상 데이터 카테고리 (필수: stream=k. k번째 스트림)(INTEGER)
-        • stream/streamSubcategory - 수집 대상 데이터 서브카테고리 (축/스핀들 번호 등) (필수: stream=k. k번째 스트림)(INTEGER)
-        • stream/streamType - 수집 유형 (KCNC 전용) (필수: stream=k. k번째 스트림)(INTEGER)
-        • stream/streamStartBit - 수집 유형이 Bit일 때 Start Bit (KCNC 전용) (필수: stream=k. k번째 스트림)(INTEGER)
-        • stream/streamEndBit - 수집 유형이 Bit일 때 End Bit (KCNC 전용) (필수: stream=k. k번째 스트림)(INTEGER)
-        • stream/value - 해당 스트림에서 마지막으로 수집된 데이터 값 (필수: stream=k. k번째 스트림)(REAL)
+        • stream/streamEnabled - 해당 스트림 사용 가능 여부 (BOOLEAN)
+        • stream/streamFrequency - 해당 스트림의 수집 주파수 (Hz) (INTEGER)
+        • stream/streamCategory - 수집 대상 데이터 카테고리 (INTEGER)
+        • stream/streamSubcategory - 수집 대상 데이터 서브카테고리 (축/스핀들 번호 등)(INTEGER)
+        • stream/streamType - 수집 유형 (KCNC 전용) (INTEGER)
+        • stream/streamStartBit - 수집 유형이 Bit일 때 Start Bit (KCNC 전용) (INTEGER)
+        • stream/streamEndBit - 수집 유형이 Bit일 때 End Bit (KCNC 전용) (INTEGER)
+        • stream/value - 해당 스트림에서 마지막으로 수집된 데이터 값(REAL)
 
         예시:
         # 1번 버퍼의 수집 상태를 조회
