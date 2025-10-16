@@ -149,8 +149,9 @@ endpoint 형식:
 
         예시:
         - endpoint="/machine/channel/workStatus/workCounter/currentWorkCounter"
+        - params={"machine": 1, "channel": 1, "workStatus": 1}
         - endpoint="/machine/channel/workStatus/machiningTime/processingMachiningTime"
-        - params={"machine": 1, "channel": 1}
+        - params={"machine": 1, "channel": 1, "workStatus": 1}
 
 
 [현재 활성된 공구의 상세 정보]
@@ -288,7 +289,7 @@ endpoint 형식:
         - params = {"machine": 1, "channel": 1}
         - endpoint = "/machine/channel/currentProgram/sequenceNumber"
 
-        - params = {"machine": 1, "channel": 1, "modal": 1}
+        - params = {"machine": 1, "channel": 1, "modalCode": 1}
         - endpoint = "/machine/channel/currentProgram/modal/modalCode"
 
         - params = {"machine": 1, "channel": 1, "workOffsetValue": 1}

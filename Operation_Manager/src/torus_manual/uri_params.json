@@ -481,11 +481,11 @@
   },
   "/machine/channel/currentProgram/modal/modalIndex": {
     "설명": "G 코드 인덱스.",
-    "required_params": "machine=i (i번째 장비), channel=j (j번째 채널), modal=k (k번째 G코드 인덱스)"
+    "required_params": "machine=i (i번째 장비), channel=j (j번째 채널), modalIndex=k (k번째 G코드 인덱스)"
   },
   "/machine/channel/currentProgram/modal/modalCode": {
     "설명": "G 코드 문자열.",
-    "required_params": "machine=i (i번째 장비), channel=j (j번째 채널), modal=k (k번째 G코드 인덱스)"
+    "required_params": "machine=i (i번째 장비), channel=j (j번째 채널), modalCode=k (k번째 G코드 인덱스)"
   },
   "/machine/channel/currentProgram/overallBlock/blockCounter": {
     "설명": "블록 카운터.",
