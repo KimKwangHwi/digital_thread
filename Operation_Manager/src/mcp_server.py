@@ -2,6 +2,7 @@
 
 from fastmcp import FastMCP
 from src.services import get_machine_service, get_project_service
+from src.repositories.history_logger import history_logger
 mcp = FastMCP(name="machine_service")
 
 PROMPT_INJECTION = """
@@ -66,6 +67,7 @@ async def setup_tools():
 async def run_mcp():
     await setup_resources()
     await setup_tools()            
+    await history_logger.initialize()
     await mcp.run_async(transport="sse", port=8050, host="0.0.0.0")
 
 import anyio
