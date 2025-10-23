@@ -19,12 +19,27 @@ from langchain_huggingface import HuggingFaceEmbeddings
 import pickle
 import aiofiles
 
-ERROR_STATUS_FILE_PATH = Path(__file__).resolve().parent.parent / "error_status.json"
+
+def load_json_file(file_path: Path) -> Dict:
+    """JSON 파일을 로드하는 유틸리티 함수"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logging.critical(f"치명적 오류: 필수 설정 파일({file_path})을 찾을 수 없습니다.")
+        raise # 예외를 다시 발생시켜 프로그램 중단
+    except json.JSONDecodeError:
+        logging.critical(f"치명적 오류: 설정 파일({file_path})의 JSON 형식이 잘못되었습니다.")
+        raise # 예외를 다시 발생시켜 프로그램 중단
+
 
 class MachineService:
     """
     CNC 장비와 연동되는 주요 비즈니스 로직(목록 조회, 파일 전송, 상태 추적 등)을 담당하는 서비스 계층.
     """
+    
+    PARAMS_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/uri_params.json'))
+    ERRORS_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/error_status.json'))
 
     def __init__(
         self, 
@@ -43,6 +58,7 @@ class MachineService:
         self.file_repo = file_repo
         self.log_repo = log_repo
         self.job_tracker = job_tracker
+        
 
     async def upload_torus_file(self, project_id: str, machine_id: int, file_id: str) -> MachineFileUploadResponse:
         """
@@ -235,97 +251,16 @@ class MachineService:
         """
         # 입력된 정수형 에러 코드를 JSON 파일의 키 형식인 문자열로 변환합니다.
         error_code_str = str(error_code)
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        json_file_path = os.path.join(current_dir, '..', 'torus_manual/error_status.json')
-
-        try:
-            # UTF-8 인코딩으로 JSON 파일을 엽니다. (한글 포함)
-            with open(json_file_path, 'r', encoding='utf-8') as f:
-                error_data = json.load(f)
-
-            # .get() 메소드를 사용하여 에러 코드를 찾습니다.
-            # 키가 존재하지 않으면 None을 반환하여 KeyError를 방지합니다.
-            error_info = error_data.get(error_code_str)
-
-            if error_info:
-                return error_info
-            else:
-                return {
-                    "분류": "Not Found",
-                    "설명": f"에러 코드 '{error_code}'에 해당하는 정보를 찾을 수 없습니다."
-                }
-
-        except FileNotFoundError:
-            return {
-                "분류": "File Error",
-                "설명": f"에러 정의 파일({json_file_path})을 찾을 수 없습니다."
-            }
-        except json.JSONDecodeError:
-            return {
-                "분류": "JSON Error",
-                "설명": "에러 정의 파일(error_status.json)의 형식이 올바르지 않습니다."
-            }
         
-
-    async def get_description_and_params_by_uri(self, endpoint: str):
-        """
-        주어진 API 엔드포인트에 대한 설명과 필수 파라미터를 반환합니다.
-
-        직전 tool 호출의 결과로 error_status : 538992680가 반환된 경우,
-        이 tool을 호출하여 해당 엔드포인트의 설명과 필수 파라미터를 확인한 후,
-        직전에 호출한 tool에 재입력하여 다시 시도할 수 있습니다.
-
-        Args:
-            endpoint (str): API 엔드포인트.
-
-        Returns:
-            dict: 엔드포인트에 대한 설명 및 필수 파라미터를 포함하는 딕셔너리.
-                오류가 발생하면 "__error__" 키를 포함한 딕셔너리를 반환합니다.
-        """
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        json_file_path = os.path.join(current_dir, '..', 'torus_manual/uri_params.json')
-
-        try:
-            # JSON 파일을 비동기적으로 읽기
-            async with aiofiles.open(json_file_path, 'r', encoding='utf-8') as f:
-                file_content = await f.read()
-
-            api_data = json.loads(file_content)
-
-            # 엔드포인트 정보 검색
-            api_info = api_data.get(endpoint)
-
-            # 결과 반환
-            if api_info:
-                return {
-                    "description": api_info.get("description"),
-                    "required_params": api_info.get("required_params")
-                }
-            else:
-                # 정보를 찾지 못한 경우
-                return {
-                    "__error__": True,
-                    "message": f"엔드포인트 '{endpoint}'에 대한 정보를 찾을 수 없습니다.",
-                    "endpoint": endpoint,
-                    "full_api_response": None
-                }
-
-        except FileNotFoundError:
+        error_info = self.ERRORS_JSON.get(error_code_str)
+        
+        if error_info:
+            return error_info
+        else:
             return {
-                "__error__": True,
-                "message": "URI 및 파라미터 JSON 파일을 찾을 수 없습니다. 경로를 확인하세요."
+                "분류": "Not Found",
+                "설명": f"에러 코드 '{error_code}'에 해당하는 정보를 찾을 수 없습니다."
             }
-        except json.JSONDecodeError:
-            return {
-                "__error__": True,
-                "message": "URI 및 파라미터 JSON 파일의 형식이 잘못되었습니다."
-            }
-        except Exception as e:
-            return {
-            "__error__": True,
-            "message": f"알 수 없는 오류가 발생했습니다: {str(e)}"
-            }
-           
             
     async def get_params_info(self, endpoint_list: List[str]):
         """
@@ -338,46 +273,22 @@ class MachineService:
         """
         results = {}
         
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        json_file_path = os.path.join(current_dir, '..', 'torus_manual/uri_params.json')
+    
+        for endpoint in endpoint_list:
+            endpoint_info = self.PARAMS_JSON.get(endpoint)
 
-        try:
-            # JSON 파일을 비동기적으로 읽기
-            async with aiofiles.open(json_file_path, 'r', encoding='utf-8') as f:
-                file_content = await f.read()
-
-            api_data = json.loads(file_content)
-            
-
-            for endpoint in endpoint_list:
-                endpoint_info = api_data.get(endpoint)
-
-                # 값이 존재할 경우에만 required_params를 찾습니다.
-                if endpoint_info:
-                    params_info = endpoint_info.get("required_params")
-                else:
-                    params_info = None  # 키가 없는 경우 None으로 처리
+            # 값이 존재할 경우에만 required_params를 찾습니다.
+            if endpoint_info:
+                params_info = endpoint_info.get("required_params")
+            else:
+                params_info = None  # 키가 없는 경우 None으로 처리
                 
-                results[endpoint] = params_info
+            results[endpoint] = params_info
                 
 
-            return results
+        return results
 
-        except FileNotFoundError:
-            return {
-                "__error__": True,
-                "message": "URI 및 파라미터 JSON 파일을 찾을 수 없습니다. 경로를 확인하세요."
-            }
-        except json.JSONDecodeError:
-            return {
-                "__error__": True,
-                "message": "URI 및 파라미터 JSON 파일의 형식이 잘못되었습니다."
-            }
-        except Exception as e:
-            return {
-            "__error__": True,
-            "message": f"알 수 없는 오류가 발생했습니다: {str(e)}"
-            }
+        
             
     async def get_async_data(self, endpoint_list: List[str], params_list: List[dict]):
         """
@@ -402,3 +313,68 @@ class MachineService:
         return results
     
     
+    
+    
+    
+    
+    
+    # async def get_description_and_params_by_uri(self, endpoint: str):
+    #     """
+    #     주어진 API 엔드포인트에 대한 설명과 필수 파라미터를 반환합니다.
+
+    #     직전 tool 호출의 결과로 error_status : 538992680가 반환된 경우,
+    #     이 tool을 호출하여 해당 엔드포인트의 설명과 필수 파라미터를 확인한 후,
+    #     직전에 호출한 tool에 재입력하여 다시 시도할 수 있습니다.
+
+    #     Args:
+    #         endpoint (str): API 엔드포인트.
+
+    #     Returns:
+    #         dict: 엔드포인트에 대한 설명 및 필수 파라미터를 포함하는 딕셔너리.
+    #             오류가 발생하면 "__error__" 키를 포함한 딕셔너리를 반환합니다.
+    #     """
+    #     current_dir = os.path.dirname(os.path.abspath(__file__))
+    #     json_file_path = os.path.join(current_dir, '..', 'torus_manual/uri_params.json')
+        
+    #     api_info = self.PARAMS_JSON.get(endpoint)
+
+    #     try:
+    #         # JSON 파일을 비동기적으로 읽기
+    #         async with aiofiles.open(json_file_path, 'r', encoding='utf-8') as f:
+    #             file_content = await f.read()
+
+    #         api_data = json.loads(file_content)
+
+    #         # 엔드포인트 정보 검색
+    #         api_info = api_data.get(endpoint)
+
+    #         # 결과 반환
+    #         if api_info:
+    #             return {
+    #                 "description": api_info.get("description"),
+    #                 "required_params": api_info.get("required_params")
+    #             }
+    #         else:
+    #             # 정보를 찾지 못한 경우
+    #             return {
+    #                 "__error__": True,
+    #                 "message": f"엔드포인트 '{endpoint}'에 대한 정보를 찾을 수 없습니다.",
+    #                 "endpoint": endpoint,
+    #                 "full_api_response": None
+    #             }
+
+    #     except FileNotFoundError:
+    #         return {
+    #             "__error__": True,
+    #             "message": "URI 및 파라미터 JSON 파일을 찾을 수 없습니다. 경로를 확인하세요."
+    #         }
+    #     except json.JSONDecodeError:
+    #         return {
+    #             "__error__": True,
+    #             "message": "URI 및 파라미터 JSON 파일의 형식이 잘못되었습니다."
+    #         }
+    #     except Exception as e:
+    #         return {
+    #         "__error__": True,
+    #         "message": f"알 수 없는 오류가 발생했습니다: {str(e)}"
+    #         }

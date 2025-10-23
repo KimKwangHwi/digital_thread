@@ -48,7 +48,7 @@ async def setup_tools():
     
     mcp.tool(machine_service.get_machine_list)
     mcp.tool(machine_service.get_error_info_by_code)
-    mcp.tool(machine_service.get_description_and_params_by_uri)
+    # mcp.tool(machine_service.get_description_and_params_by_uri)
     mcp.tool(machine_service.get_params_info)
     mcp.tool(machine_service.get_async_data)
  
