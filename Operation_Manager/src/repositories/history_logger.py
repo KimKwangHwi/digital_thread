@@ -23,7 +23,7 @@ class APIHistoryLogger:
         """
         API 호출 결과 일괄 저장
         """
-        if not self.collection:
+        if self.collection is None:
             await self.initialize()
         
         documents = []

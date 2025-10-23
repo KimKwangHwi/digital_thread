@@ -18,6 +18,7 @@ import logging
 from langchain_huggingface import HuggingFaceEmbeddings
 import pickle
 import aiofiles
+from src.repositories.history_logger import history_logger
 
 
 def load_json_file(file_path: Path) -> Dict:
@@ -309,6 +310,10 @@ class MachineService:
             asyncio_tasks.append(self.machine_repo.get_data(endpoint, params))
         
         results = await asyncio.gather(*asyncio_tasks)
+
+        asyncio.create_task(
+            history_logger.log_batch(endpoint_list, params_list, results)
+        )
         
         return results
     

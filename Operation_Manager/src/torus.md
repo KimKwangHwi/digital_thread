@@ -43,7 +43,7 @@ endpoint 형식: /machine/channel/{leaf_node}
    
 
         예시: endpoint="/machine/channel/channelEnabled", params={"machine": 1, "channel": 1}
-        """
+        
 
 [축 별 상태 정보]
 endpoint 형식: 
