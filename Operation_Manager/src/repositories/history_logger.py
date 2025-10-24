@@ -1,6 +1,7 @@
 # services/history_logger.py
 from datetime import datetime
 from database import get_db
+from typing import Optional, Dict, Any
 
 class APIHistoryLogger:
     def __init__(self):
@@ -21,19 +22,15 @@ class APIHistoryLogger:
         ]
         
          # 일반 로그용 인덱스 (unique 조합)
-        await self.history_coll.create_index(common_index, unique=True)
+        await self.history_coll.create_index(common_index)
         await self.history_coll.create_index("last_updated",  expireAfterSeconds=60 * 60 * 24 * 30)
 
         # 에러 로그용 인덱스 (unique 조합)
-        await self.error_coll.create_index(common_index, unique=True)
+        await self.error_coll.create_index(common_index)
         await self.error_coll.create_index("last_updated",  expireAfterSeconds=60 * 60 * 24 * 30)
 
         print("✅ APIHistoryLogger 초기화 완료 (api_history, api_error 컬렉션 준비됨)")
         # 인덱스 생성 (성능 최적화)
-        await self.collection.create_index([
-            ("index.endpoint", 1),
-            ("index.params.machine", 1)
-        ])
         print("✅ API History Logger 초기화 완료")
     
     async def log_batch(self, endpoint_list, params_list, results):
