@@ -317,12 +317,100 @@ class MachineService:
         
         return results
     
-    
-    
-    
-    
-    
-    
+    #from typing import List, Dict, Any, Tuple
+    async def get_log_data(
+        self,
+        endpoint_list: List[str],
+        params_list: List[dict],
+        limit: int = 10,
+        is_error: bool = False
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """
+        - 특정 엔드포인트, 파라미터에 대한 최근 로그 데이터(이전 답변이 저장된 데이터)를 조회합니다.
+        - endpoint_list와 params_list의 길이는 같아야 하며, 각 인덱스에 해당하는 엔드포인트와 파라미터로 로그 데이터 검색이 이루어집니다.
+        - 정상 답변 데이터를 조회하는 경우 is_error는 False로, 에러 답변 데이터를 조회하는 경우 is_error는 True로 설정해야 합니다.
+
+        Args:
+            endpoint_list (List[str]): 조회할 API 엔드포인트 리스트.
+            params_list (List[dict]): 각 엔드포인트에 대한 파라미터 딕셔너리 리스트. 
+            limit (int): 각 엔드포인트+파라미터 조합에 대해 조회할 최대 로그 개수. 기본값은 10.
+            is_error (bool): 에러 로그를 조회할지 여부. 기본값은 False
+
+        Returns:
+            Tuple[
+                List[Dict[str, Any]],  # results: 각 조합의 로그 조회 결과 리스트
+                List[Dict[str, Any]]   # errors: 조회 중 오류가 발생한 항목 리스트
+            ]
+        """
+        if len(endpoint_list) != len(params_list):
+            raise ValueError("endpoint_list and params_list must have the same length.")
+
+        results: List[Dict[str, Any]] = []
+        errors: List[Dict[str, Any]] = []
+
+        asyncio_tasks = []
+
+        # ✅ 1. 각 endpoint+params 조합별 조회 task 생성
+        for endpoint, params in zip(endpoint_list, params_list):
+            task = asyncio.create_task(
+                self._fetch_single_log(endpoint, params, limit, is_error)
+            )
+            asyncio_tasks.append(task)
+
+        # ✅ 2. 모든 task 병렬 실행
+        task_results = await asyncio.gather(*asyncio_tasks, return_exceptions=True)
+
+        # ✅ 3. 결과 처리 (예외 vs 정상 결과 구분)
+        for endpoint, params, res in zip(endpoint_list, params_list, task_results):
+            if isinstance(res, Exception):
+                errors.append({
+                    "endpoint": endpoint,
+                    "params": params,
+                    "error": str(res)
+                })
+                results.append({
+                    "endpoint": endpoint,
+                    "params": params,
+                    "logs": [],
+                    "last_updated": None
+                })
+            else:
+                results.append(res)
+
+        return results, errors
+
+    async def _fetch_single_log(
+        self,
+        endpoint: str,
+        params: dict,
+        limit: int,
+        is_error: bool
+    ) -> Dict[str, Any]:
+        """
+        단일 endpoint+params 쌍의 로그 데이터를 조회하는 내부 헬퍼.
+        레포지토리 함수(history_logger.find_logs) 호출 및 결과 가공 포함.
+        """
+        doc = await history_logger.find_logs(endpoint, params, limit=limit, is_error=is_error)
+        if doc is None:
+            return {
+                "endpoint": endpoint,
+                "params": params,
+                "logs": [],
+                "last_updated": None
+            }
+
+        field = "error" if is_error else "answer"
+        logs = doc.get(field) or []
+        last_updated = doc.get("last_updated")
+
+        return {
+            "endpoint": endpoint,
+            "params": params,
+            "logs": logs,
+            "last_updated": last_updated
+        }
+        
+
     # async def get_description_and_params_by_uri(self, endpoint: str):
     #     """
     #     주어진 API 엔드포인트에 대한 설명과 필수 파라미터를 반환합니다.
