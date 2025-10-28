@@ -373,12 +373,6 @@ class MachineService:
                     "params": params,
                     "error": str(res)
                 })
-                results.append({
-                    "endpoint": endpoint,
-                    "params": params,
-                    "logs": [],
-                    "last_updated": None
-                })
             else:
                 results.append(res)
 
@@ -402,7 +396,7 @@ class MachineService:
             return {
                 "endpoint": endpoint,
                 "params": params,
-                "logs": [],
+                "logs": "doc is None",
                 "last_updated": None
             }
 
