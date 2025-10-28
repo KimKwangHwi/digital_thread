@@ -324,7 +324,9 @@ class MachineService:
         endpoint_list: List[str],
         params_list: List[dict],
         limit: int = 10,
-        is_error: bool = False
+        is_error: bool = False,
+        start_time: datetime = None, # 시작 시간 파라미터 추가
+        end_time: datetime = None    # 종료 시간 파라미터 추가
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
         - 특정 엔드포인트, 파라미터에 대한 최근 로그 데이터(이전 답변이 저장된 데이터)를 조회합니다.
@@ -336,6 +338,8 @@ class MachineService:
             params_list (List[dict]): 각 엔드포인트에 대한 파라미터 딕셔너리 리스트. 
             limit (int): 각 엔드포인트+파라미터 조합에 대해 조회할 최대 로그 개수. 기본값은 10.
             is_error (bool): 에러 로그를 조회할지 여부. 기본값은 False
+            start_time (datetime, optional): 조회 시작 시간. 기본값은 None.
+            end_time (datetime, optional): 조회 종료 시간. 기본값은 None.
 
         Returns:
             Tuple[
@@ -354,7 +358,7 @@ class MachineService:
         # ✅ 1. 각 endpoint+params 조합별 조회 task 생성
         for endpoint, params in zip(endpoint_list, params_list):
             task = asyncio.create_task(
-                self._fetch_single_log(endpoint, params, limit, is_error)
+                self._fetch_single_log(endpoint, params, limit, is_error, start_time, end_time)
             )
             asyncio_tasks.append(task)
 
@@ -385,13 +389,15 @@ class MachineService:
         endpoint: str,
         params: dict,
         limit: int,
-        is_error: bool
+        is_error: bool,
+        start_time: datetime, 
+        end_time: datetime   
     ) -> Dict[str, Any]:
         """
         단일 endpoint+params 쌍의 로그 데이터를 조회하는 내부 헬퍼.
         레포지토리 함수(history_logger.find_logs) 호출 및 결과 가공 포함.
         """
-        doc = await history_logger.find_logs(endpoint, params, limit=limit, is_error=is_error)
+        doc = await history_logger.find_logs_time(endpoint, params, limit=limit, is_error=is_error, start_time=start_time, end_time=end_time)
         if doc is None:
             return {
                 "endpoint": endpoint,

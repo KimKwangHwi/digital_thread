@@ -1,5 +1,6 @@
 # services/history_logger.py
 from datetime import datetime
+from datetime import timedelta
 from database import get_db
 from typing import Optional, Dict, Any
 
@@ -95,6 +96,8 @@ class APIHistoryLogger:
         반환:
             - 문서가 존재하면 해당 문서(필요 필드만 포함)
             - 문서가 없거나 오류가 발생하면 None을 반환
+            - is_error=True → 에러 컬렉션에서 조회
+            - is_error=False → 정상 로그 컬렉션에서 조회
         """
         if self.history_coll is None or self.error_coll is None:
             await self.initialize()
@@ -118,6 +121,102 @@ class APIHistoryLogger:
         
     
     
-    
+    async def find_logs_time(
+        self,
+        endpoint: str,
+        params: dict,
+        limit: int = 10,
+        is_error: bool = False,
+        start_time: datetime = None, # 시작 시간 파라미터 추가
+        end_time: datetime = None    # 종료 시간 파라미터 추가
+    ):
+        """
+        특정 endpoint+params 문서에서 start_time부터 end_time 사이에 발생한 N개 또는 특정 기간 내의 로그 조회.
+        - is_error=True → 에러 컬렉션에서 조회
+        - is_error=False → 정상 로그 컬렉션에서 조회
+        """
+        try:
+            if self.history_coll is None or self.error_coll is None:
+                await self.initialize()
+
+            coll = self.error_coll if is_error else self.history_coll
+            field = "error" if is_error else "answer"
+
+            # 기본 필터 조건
+            filter_query = {"index.endpoint": endpoint, "index.params": params}
+
+        # 시간 범위 조건 추가
+            time_query = {}
+            if start_time:
+                time_query["$gte"] = start_time
+            if end_time:
+                time_query["$lte"] = end_time
+
+            if time_query:
+                # MongoDB는 배열 내 객체의 필드를 쿼리할 때 "elemMatch"를 사용합니다.
+                # "answer" 또는 "error" 배열의 각 요소가 "timestamp" 필드를 가지고 있다고 가정합니다.
+                filter_query[field] = {"$elemMatch": {"timestamp": time_query}}
+
+            # 프로젝션 설정: 시간 조건이 없으면 기존처럼 slice, 있으면 전체 필드
+            projection = {field: {"$slice": -limit}} if not time_query else None
+
+            # find_one 대신 find를 사용하여 여러 문서를 가져올 수 있도록 변경
+            # 여기서는 하나의 문서 내에서 필터링하는 로직이므로 aggregate를 사용하는 것이 더 적합합니다.
+        
+            pipeline = [
+                {'$match': {"index.endpoint": endpoint, "index.params": params}},
+                {'$unwind': f'${field}'},
+            ]
+
+        # 시간 필터링 추가
+            if time_query:
+                pipeline.append({'$match': {f'{field}.timestamp': time_query}})
+
+            # 최신순으로 정렬
+            pipeline.append({'$sort': {f'{field}.timestamp': -1}})
+        
+            # 개수 제한
+            pipeline.append({'$limit': limit})
+        
+            # 원래 문서 형태로 다시 그룹화 (선택적)
+            pipeline.append({
+                '$group': {
+                    '_id': '$_id',
+                    'index': {'$first': '$index'},
+                    f'{field}': {'$push': f'${field}'}
+                }
+            })
+
+            cursor = coll.aggregate(pipeline)
+            result_docs = await cursor.to_list(length=None)
+
+            if not result_docs:
+                print(f"조건에 맞는 로그를 찾을 수 없습니다: {filter_query}")
+                return None
+
+            # 일반적으로 하나의 문서가 반환될 것으로 예상
+            return result_docs if result_docs else None
+
+        except Exception as e:
+            print(f"로그 조회 중 예상치 못한 오류가 발생했습니다: {e}", exc_info=True)
+            return {"error": "An unexpected error occurred."}
+        
+        
+    # async def delete_all_logs(self):
+    #     """모든 로그 삭제 (테스트용)"""
+    #     if self.history_coll is None or self.error_coll is None:
+    #         await self.initialize()
+    #     await self.history_coll.delete_many({})
+    #     await self.error_coll.delete_many({})
+    #     print("✅ 모든 API 로그 삭제 완료")
+        
+    # async def delete_some_logs(self, days: int):
+    #     """특정 일수 이전 로그 삭제 (테스트용)"""
+    #     if self.history_coll is None or self.error_coll is None:
+    #         await self.initialize()
+    #     cutoff_date = datetime.now() - timedelta(days=days)
+    #     history_result = await self.history_coll.delete_many({"last_updated": {"$lt": cutoff_date}})
+    #     error_result = await self.error_coll.delete_many({"last_updated": {"$lt": cutoff_date}})
+    #     print(f"✅ {days}일 이전의 API 로그 삭제 완료: history({history_result.deleted_count}), errors({error_result.deleted_count})")
 # 싱글톤
 history_logger = APIHistoryLogger()
