@@ -319,7 +319,7 @@ class MachineService:
         return results
     
     #from typing import List, Dict, Any, Tuple
-    async def get_log_data(
+    async def get_log_async_data(
         self,
         endpoint_list: List[str],
         params_list: List[dict],
@@ -359,6 +359,7 @@ class MachineService:
         for endpoint, params in zip(endpoint_list, params_list):
             task = asyncio.create_task(
                 self._fetch_single_log(endpoint, params, limit, is_error, start_time, end_time)
+                
             )
             asyncio_tasks.append(task)
 
@@ -377,7 +378,57 @@ class MachineService:
                 results.append(res)
 
         return results, errors
-
+    
+    async def get_log_data(
+        self,
+        endpoint: str,
+        params: dict,
+        limit: int = 10,
+        is_error: bool = False,
+        start_time: datetime = None, 
+        end_time: datetime = None   
+    ) -> Dict[str, Any]:
+        """
+        단일 endpoint+params 쌍의 로그 데이터를 조회합니다.
+        레포지토리 함수(history_logger.find_logs) 호출 및 결과 가공 포함.
+        """
+        return await history_logger.find_logs_time(endpoint, params, limit, is_error, start_time, end_time)
+    
+    async def get_top_error_codes(
+        self,
+        limit: int = 3,
+        start_time: datetime = None, 
+        end_time: datetime = None 
+    ) -> List[Dict[str, Any]]:
+        """
+        [툴 1] 특정 기간 동안 가장 많이 발생한 에러 코드를 N개 조회합니다.
+        """
+        return await history_logger.get_top_error_codes(limit, start_time, end_time)
+    
+    async def get_top_error_endpoints(
+        self,
+        limit: int = 1,
+        start_time: datetime = None,  
+        end_time: datetime = None 
+    ) -> List[Dict[str, Any]]:
+        """
+        [툴 2] 특정 기간 동안 에러가 가장 많이 발생한 엔드포인트+파라미터 조합을 N개 조회합니다.
+        """
+        return await history_logger.get_top_error_endpoints(limit, start_time, end_time)
+    
+    async def get_most_used_params(
+        self,
+        endpoint: str,
+        limit: int = 1,
+        start_time: datetime = None, 
+        end_time: datetime = None 
+    ) -> List[Dict[str, Any]]:
+        """
+        [툴 3] 특정 엔드포인트에서 가장 자주 "사용된" 파라미터 조합을 N개 조회합니다.
+        """
+        return await history_logger.get_most_used_params(endpoint, limit, start_time, end_time)
+    
+    
     async def _fetch_single_log(
         self,
         endpoint: str,
