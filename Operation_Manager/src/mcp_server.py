@@ -55,7 +55,7 @@ async def setup_tools():
     mcp.tool(machine_service.get_log_async_data)
     
     mcp.tool(machine_service.get_log_data)
-    mcp.tool(machine_service.get_most_used_params)
+    mcp.tool(machine_service.get_top_params_for_endpoint)
     mcp.tool(machine_service.get_top_error_endpoints)
     mcp.tool(machine_service.get_top_error_codes)
     

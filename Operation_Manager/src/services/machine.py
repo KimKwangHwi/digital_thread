@@ -416,7 +416,7 @@ class MachineService:
         """
         return await history_logger.get_top_error_endpoints(limit, start_time, end_time)
     
-    async def get_most_used_params(
+    async def get_top_params_for_endpoint(
         self,
         endpoint: str,
         limit: int = 1,
@@ -426,7 +426,7 @@ class MachineService:
         """
         [툴 3] 특정 엔드포인트에서 가장 자주 "사용된" 파라미터 조합을 N개 조회합니다.
         """
-        return await history_logger.get_most_used_params(endpoint, limit, start_time, end_time)
+        return await history_logger.get_top_params_for_endpoint(endpoint, limit, start_time, end_time)
     
     
     async def _fetch_single_log(
