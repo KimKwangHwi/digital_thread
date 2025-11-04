@@ -291,7 +291,26 @@ class MachineService:
         return results
 
         
-            
+    async def get_cache_before_async_data(self, endpoint_list: List[str], params_list: List[dict]):
+        """
+        - get_async_data 호출 전에, 동일한 endpoint+params 조합에 대해 최근 로그를 확인하여
+          결과값이 변하지 않았는지 검사합니다.
+        - 캐시 히트 시 이전 결과값을 반환하고, 미스 시 None을 반환합니다.
+        
+        Args:
+            endpoint_list (List[str]): 조회할 API 엔드포인트 리스트.
+            params_list (List[dict]): 각 엔드포인트에 대한 파라미터 딕셔너리 리스트. 
+        """
+        if len(endpoint_list) != len(params_list):
+            return "엔드포인트 리스트와 파라미터 리스트의 길이는 같아야 합니다."
+        
+        asyncio_tasks = []
+        for endpoint, params in zip(endpoint_list, params_list):
+            asyncio_tasks.append(history_logger.get_cache(endpoint, params, check_count=5))
+        
+        results = await asyncio.gather(*asyncio_tasks)
+        return results
+        
     async def get_async_data(self, endpoint_list: List[str], params_list: List[dict]):
         """
         - 여러 API 엔드포인트에 대해 비동기적으로 데이터를 조회합니다.

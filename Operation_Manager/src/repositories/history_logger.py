@@ -300,6 +300,82 @@ class APIHistoryLogger:
             print(f"⚠️ get_top_params_for_endpoint 집계 실패: {e}")
             return []
 
+    async def get_cache(
+        self, 
+        endpoint: str, 
+        params: dict, 
+        check_count: int = 10
+    ) -> Optional[Any]:
+        """
+        [캐시 툴] 최근 N개의 로그를 확인하여 결과값이 모두 동일한지 검사합니다.
+        
+        N개의 로그가 존재하고, 그 'result' 값이 모두 동일할 경우 (값이 안정된 경우)
+        해당 'result' 값을 반환합니다. 그렇지 않으면 None을 반환합니다.
+
+        Args:
+            endpoint (str): 확인할 엔드포인트
+            params (dict): 확인할 파라미터
+            check_count (int): 확인할 최근 로그 개수 (N). 
+                               기본값은 10입니다.
+
+        Returns:
+            Optional[Any]: 캐시 히트 시 'result' 값, 미스 시 None
+        """
+        # 시간 제약도 걸 수 있지만 일단 생략 
+        
+        if self.history_coll is None:
+            await self.initialize()
+
+        # "값이 변하지 않았는지" 확인하려면 최소 2개의 로그가 필요합니다.
+        if check_count < 10:
+            return None 
+
+        # Aggregation Pipeline을 사용하여 DB에서 모든 계산을 처리합니다.
+        pipeline = [
+            # 1. 원하는 endpoint와 params로 문서를 필터링
+            {'$match': {
+                'endpoint': endpoint,
+                'params': params
+            }},
+            # 2. 최신순으로 정렬
+            {'$sort': {'timestamp': DESCENDING}},
+            # 3. 검사할 N개만 선택
+            {'$limit': check_count},
+            # 4. "result" 필드를 기준으로 그룹화
+            {'$group': {
+                '_id': '$result',      # 동일한 'result' 값끼리 묶음
+                'count': {'$sum': 1} # 묶인 그룹의 개수를 셈
+            }}
+        ]
+
+        try:
+            cursor = self.history_coll.aggregate(pipeline)
+            # 집계 결과를 리스트로 변환
+            grouped_results = await cursor.to_list(length=None)
+
+            # --- 5. 캐시 히트/미스 판별 ---
+
+            # 5-1. [Cache Miss] 그룹이 1개가 아니다?
+            #      -> 최근 N개 로그 중에 'result' 값이 다른 것이 섞여있다는 의미
+            if len(grouped_results) != 1:
+                return None
+
+            # 5-2. [Cache Miss] 그룹은 1개인데, 개수가 N개보다 적다?
+            #      -> 검사할 만큼(N개)의 로그가 아직 쌓이지 않았다는 의미
+            if grouped_results[0].get('count') < check_count:
+                return None
+
+            # 5-3. [Cache Hit] 그룹이 1개이고, 개수도 N개와 일치
+            #      -> 최근 N개의 로그가 존재하며, 그 'result' 값이 모두 동일함
+            
+            # $group의 _id가 'result' 값이므로 _id를 반환
+            return grouped_results[0].get('_id') 
+
+        except Exception as e:
+            print(f"⚠️ get_cache 집계 실패 ({endpoint}): {e}")
+            return None # 오류 발생 시에도 Cache Miss로 처리    
+
+
     # async def delete_all_logs(self):
     #     """모든 로그 삭제 (테스트용)"""
     #     if self.history_coll is None or self.error_coll is None:
