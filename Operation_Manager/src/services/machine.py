@@ -391,6 +391,7 @@ class MachineService:
         """
         단일 endpoint+params 쌍의 로그 데이터를 조회합니다.
         레포지토리 함수(history_logger.find_logs) 호출 및 결과 가공 포함.
+        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
         """
         return await history_logger.find_logs_time(endpoint, params, limit, is_error, start_time, end_time)
     
@@ -413,6 +414,7 @@ class MachineService:
     ) -> List[Dict[str, Any]]:
         """
         [툴 2] 특정 기간 동안 에러가 가장 많이 발생한 엔드포인트+파라미터 조합을 N개 조회합니다.
+        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
         """
         return await history_logger.get_top_error_endpoints(limit, start_time, end_time)
     
@@ -425,6 +427,7 @@ class MachineService:
     ) -> List[Dict[str, Any]]:
         """
         [툴 3] 특정 엔드포인트에서 가장 자주 "사용된" 파라미터 조합을 N개 조회합니다.
+        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
         """
         return await history_logger.get_top_params_for_endpoint(endpoint, limit, start_time, end_time)
     

@@ -4,6 +4,7 @@ from datetime import timedelta
 from database import get_db
 from typing import Optional, Dict, Any, List
 from pymongo import DESCENDING
+from zoneinfo import ZoneInfo
 
 class APIHistoryLogger:
     def __init__(self):
@@ -21,15 +22,9 @@ class APIHistoryLogger:
 
         # 일반 로그용 인덱스 (unique 조합)
         await self.history_coll.create_index(common_index)
-        await self.history_coll.create_index(
-            "last_updated", expireAfterSeconds=60 * 60 * 24 * 30
-        )
 
         # 에러 로그용 인덱스 (unique 조합)
         await self.error_coll.create_index(common_index)
-        await self.error_coll.create_index(
-            "last_updated", expireAfterSeconds=60 * 60 * 24 * 30
-        )
 
         print("✅ APIHistoryLogger 초기화 완료 (api_history, api_error 컬렉션 준비됨)")
         # 인덱스 생성 (성능 최적화)
@@ -51,7 +46,7 @@ class APIHistoryLogger:
         # 1. 삽입할 로그들을 에러/정상으로 분류하여 리스트에 준비
         for endpoint, params, result in zip(endpoint_list, params_list, results):
             is_error = self._is_error(result)
-            timestamp = datetime.now()
+            timestamp = datetime.now(ZoneInfo("Asia/Seoul"))
 
             if is_error:
                 # 에러 로그 문서 구조

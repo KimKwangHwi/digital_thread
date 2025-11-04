@@ -14,7 +14,7 @@ chardet
 motor
 redis
 fastmcp
-
+tzdata
 
 faiss-cpu==1.11.0.post1
 numpy==2.3.2
