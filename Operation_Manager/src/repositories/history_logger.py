@@ -326,9 +326,6 @@ class APIHistoryLogger:
         if self.history_coll is None:
             await self.initialize()
 
-        # "값이 변하지 않았는지" 확인하려면 최소 2개의 로그가 필요합니다.
-        if check_count < 10:
-            return None 
 
         # Aggregation Pipeline을 사용하여 DB에서 모든 계산을 처리합니다.
         pipeline = [
@@ -357,13 +354,15 @@ class APIHistoryLogger:
 
             # 5-1. [Cache Miss] 그룹이 1개가 아니다?
             #      -> 최근 N개 로그 중에 'result' 값이 다른 것이 섞여있다는 의미
-            if len(grouped_results) != 1:
-                return None
+            if len(grouped_results) >= 2:
+                return "결과값이 일정하지 않아 조회가 필요합니다"
+            elif len(grouped_results) <= 0:
+                return "조회된 로그가 없습니다"
 
             # 5-2. [Cache Miss] 그룹은 1개인데, 개수가 N개보다 적다?
             #      -> 검사할 만큼(N개)의 로그가 아직 쌓이지 않았다는 의미
             if grouped_results[0].get('count') < check_count:
-                return None
+                return f"검사할 로그가 충분하지 않습니다. 현재 {grouped_results[0].get('count')} 개"
 
             # 5-3. [Cache Hit] 그룹이 1개이고, 개수도 N개와 일치
             #      -> 최근 N개의 로그가 존재하며, 그 'result' 값이 모두 동일함

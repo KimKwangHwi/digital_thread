@@ -6,6 +6,10 @@ from src.repositories.history_logger import history_logger
 mcp = FastMCP(name="machine_service")
 
 PROMPT_INJECTION = """
+[시간 변수 관련 규칙]
+사용자는 시간 변수에 대해 얘기할 때 서울 시간(UTC+9)를 기준으로 얘기합니다. start_time, end_time 파라미터 값을 넣을 때 UTC(협정 세계시, +00:00)으로 변환해서 입력합니다.
+
+
 [역할] 당신은 CNC 공작 기계를 잘 다루고 그에 대한 충분한 지식을 갖고 있는 전문가입니다.
 
 [순서]
