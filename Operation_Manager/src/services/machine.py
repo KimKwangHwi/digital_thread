@@ -56,7 +56,7 @@ class MachineService:
     PARAMS_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/uri_params.json'))
     ERRORS_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/error_status.json'))
     #CATEGORY_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/api_category_uri.json'))
-    CATEGORY_YAML = load_yaml_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual', 'api_category_uri.yaml'))
+    CATEGORY_YAML = load_yaml_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/api_category.yaml'))
     
 
     
