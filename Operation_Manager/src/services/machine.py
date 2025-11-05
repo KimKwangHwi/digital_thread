@@ -42,7 +42,9 @@ class MachineService:
     
     PARAMS_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/uri_params.json'))
     ERRORS_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/error_status.json'))
-
+    CATEGORY_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/api_category_uri.json'))
+    
+    
     def __init__(
         self, 
         machine_repo: MachineRepository, 
@@ -240,6 +242,24 @@ class MachineService:
         machines = [MachineInfo(**item) for item in raw_list]
         return MachineListResponse(machines=machines)
 
+    async def get_category_info(self, category: str):
+        """
+        TORUS API 카테고리 및 엔드포인트 정보를 반환합니다.
+        Args:
+            category (str): 조회할 카테고리 이름. 카테고리 이름은 반드시 다음 중 하나입니다 : 
+            "장비 기본 정보", "채널 상태 정보", "축 상태 및 제어", "스핀들 상태 및 제어", 
+            "이송 속도 및 오버라이드", "활성화된 공구 정보", "매거진 및 공구 목록의 공구 정보", 
+            "NC 프로그램 실행 정보", "좌표계 및 오프셋", "알람 및 에러", "PLC 및 변수", 
+            "가공 상태 및 집계", "센서 데이터 수집" 
+        Returns:
+           '설명'이 포함된 딕셔너리.
+        """
+        category_info = self.CATEGORY_JSON.get(category)
+        if category_info:
+            return category_info
+        else:
+            return "카테고리 정보를 찾을 수 없습니다. 답변을 종료합니다."
+        
     async def get_error_info_by_code(self, error_code: int) -> Dict[str, str]:
         """
         주어진 에러 코드(error_status)에 해당하는 분류와 설명을 반환합니다.
@@ -337,6 +357,70 @@ class MachineService:
         
         return results
     
+    
+    
+    async def get_log_data(
+        self,
+        endpoint: str,
+        params: dict,
+        limit: int = 10,
+        is_error: bool = False,
+        start_time: datetime = None, 
+        end_time: datetime = None   
+    ) -> Dict[str, Any]:
+        """
+        단일 endpoint+params 쌍의 로그 데이터를 조회합니다.
+        레포지토리 함수(history_logger.find_logs) 호출 및 결과 가공 포함.
+        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
+        """
+        return await history_logger.find_logs_time(endpoint, params, limit, is_error, start_time, end_time)
+    
+    async def get_top_error_codes(
+        self,
+        limit: int = 3,
+        start_time: datetime = None, 
+        end_time: datetime = None 
+    ) -> List[Dict[str, Any]]:
+        """
+        [툴 1] 특정 기간 동안 가장 많이 발생한 에러 코드를 N개 조회합니다.
+        """
+        return await history_logger.get_top_error_codes(limit, start_time, end_time)
+    
+    async def get_top_error_endpoints(
+        self,
+        limit: int = 1,
+        start_time: datetime = None,  
+        end_time: datetime = None 
+    ) -> List[Dict[str, Any]]:
+        """
+        [툴 2] 특정 기간 동안 에러가 가장 많이 발생한 엔드포인트+파라미터 조합을 N개 조회합니다.
+        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
+        """
+        return await history_logger.get_top_error_endpoints(limit, start_time, end_time)
+    
+    async def get_top_params_for_endpoint(
+        self,
+        endpoint: str,
+        limit: int = 1,
+        start_time: datetime = None, 
+        end_time: datetime = None 
+    ) -> List[Dict[str, Any]]:
+        """
+        [툴 3] 특정 엔드포인트에서 가장 자주 "사용된" 파라미터 조합을 N개 조회합니다.
+        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
+        """
+        return await history_logger.get_top_params_for_endpoint(endpoint, limit, start_time, end_time)
+    
+    
+    
+    
+    
+    
+    # =============================================================================================================
+    
+    
+    
+    
     #from typing import List, Dict, Any, Tuple
     async def get_log_async_data(
         self,
@@ -397,59 +481,6 @@ class MachineService:
                 results.append(res)
 
         return results, errors
-    
-    async def get_log_data(
-        self,
-        endpoint: str,
-        params: dict,
-        limit: int = 10,
-        is_error: bool = False,
-        start_time: datetime = None, 
-        end_time: datetime = None   
-    ) -> Dict[str, Any]:
-        """
-        단일 endpoint+params 쌍의 로그 데이터를 조회합니다.
-        레포지토리 함수(history_logger.find_logs) 호출 및 결과 가공 포함.
-        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
-        """
-        return await history_logger.find_logs_time(endpoint, params, limit, is_error, start_time, end_time)
-    
-    async def get_top_error_codes(
-        self,
-        limit: int = 3,
-        start_time: datetime = None, 
-        end_time: datetime = None 
-    ) -> List[Dict[str, Any]]:
-        """
-        [툴 1] 특정 기간 동안 가장 많이 발생한 에러 코드를 N개 조회합니다.
-        """
-        return await history_logger.get_top_error_codes(limit, start_time, end_time)
-    
-    async def get_top_error_endpoints(
-        self,
-        limit: int = 1,
-        start_time: datetime = None,  
-        end_time: datetime = None 
-    ) -> List[Dict[str, Any]]:
-        """
-        [툴 2] 특정 기간 동안 에러가 가장 많이 발생한 엔드포인트+파라미터 조합을 N개 조회합니다.
-        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
-        """
-        return await history_logger.get_top_error_endpoints(limit, start_time, end_time)
-    
-    async def get_top_params_for_endpoint(
-        self,
-        endpoint: str,
-        limit: int = 1,
-        start_time: datetime = None, 
-        end_time: datetime = None 
-    ) -> List[Dict[str, Any]]:
-        """
-        [툴 3] 특정 엔드포인트에서 가장 자주 "사용된" 파라미터 조합을 N개 조회합니다.
-        시간 정보 ex) 2025-11-04 09:18:02.503360+09:00
-        """
-        return await history_logger.get_top_params_for_endpoint(endpoint, limit, start_time, end_time)
-    
     
     async def _fetch_single_log(
         self,
