@@ -5,6 +5,7 @@ from typing import Dict
 from typing import List
 from typing import Any, Tuple
 import os
+import yaml
 from pathlib import Path
 import uuid
 import json
@@ -35,6 +36,18 @@ def load_json_file(file_path: Path) -> Dict:
         raise # 예외를 다시 발생시켜 프로그램 중단
 
 
+def load_yaml_file(file_path: Path) -> Dict[str, Any]:
+    """YAML 파일을 로드하는 유틸리티 함수"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except FileNotFoundError:
+        logging.critical(f"치명적 오류: 필수 설정 파일({file_path})을 찾을 수 없습니다.")
+        raise  # 예외를 다시 발생시켜 프로그램 중단
+    except yaml.YAMLError as e:
+        logging.critical(f"치명적 오류: 설정 파일({file_path})의 YAML 형식이 잘못되었습니다. 상세: {e}")
+        raise  # 예외를 다시 발생시켜 프로그램 중단
+
 class MachineService:
     """
     CNC 장비와 연동되는 주요 비즈니스 로직(목록 조회, 파일 전송, 상태 추적 등)을 담당하는 서비스 계층.
@@ -42,8 +55,10 @@ class MachineService:
     
     PARAMS_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/uri_params.json'))
     ERRORS_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/error_status.json'))
-    CATEGORY_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/api_category_uri.json'))
+    #CATEGORY_JSON = load_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual/api_category_uri.json'))
+    CATEGORY_YAML = load_yaml_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'torus_manual', 'api_category_uri.yaml'))
     
+
     
     def __init__(
         self, 
@@ -247,14 +262,24 @@ class MachineService:
         TORUS API 카테고리 및 엔드포인트 정보를 반환합니다.
         Args:
             category (str): 조회할 카테고리 이름. 카테고리 이름은 반드시 다음 중 하나입니다 : 
-            "장비 기본 정보", "채널 상태 정보", "축 상태 및 제어", "스핀들 상태 및 제어", 
-            "이송 속도 및 오버라이드", "활성화된 공구 정보", "매거진 및 공구 목록의 공구 정보", 
-            "NC 프로그램 실행 정보", "좌표계 및 오프셋", "알람 및 에러", "PLC 및 변수", 
-            "가공 상태 및 집계", "센서 데이터 수집" 
+                "장비 기본 정보"
+                "채널 상태 정보"
+                "축 상태 및 제어"
+                "스핀들 상태 및 제어"         
+                "이송 속도 및 오버라이드"
+                "가공 상태 및 집계"
+                "활성화된 공구 정보"
+                "NC 프로그램 실행 정보"
+                "좌표계 및 오프셋"
+                "알람 및 에러"
+                "사용자 변수"
+                "CNC 내부 PLC 메모리 데이터"
+                "장비 공구 영역 및 공구 정보"
+                "센서 데이터 수집"
         Returns:
            '설명'이 포함된 딕셔너리.
         """
-        category_info = self.CATEGORY_JSON.get(category)
+        category_info = self.CATEGORY_YAML.get(category)
         if category_info:
             return category_info
         else:
