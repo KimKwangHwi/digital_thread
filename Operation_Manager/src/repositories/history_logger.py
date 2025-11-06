@@ -5,6 +5,7 @@ from database import get_db
 from typing import Optional, Dict, Any, List
 from pymongo import DESCENDING
 from zoneinfo import ZoneInfo
+import asyncio
 
 class APIHistoryLogger:
     def __init__(self):
@@ -373,6 +374,118 @@ class APIHistoryLogger:
         except Exception as e:
             print(f"⚠️ get_cache 집계 실패 ({endpoint}): {e}")
             return None # 오류 발생 시에도 Cache Miss로 처리    
+
+    async def get_endpoint_stats(
+        self,
+        endpoint: str,
+        start_time: datetime = None,
+        end_time: datetime = None
+    ) -> Dict[str, Any]:
+        """
+        [툴 1] 특정 엔드포인트의 총 성공/에러 횟수를 반환합니다.
+        
+        Args:
+            endpoint (str): (필수) 조회할 엔드포인트
+            start_time (datetime, optional): (선택) 조회 시작 시간
+            end_time (datetime, optional): (선택) 조회 종료 시간
+        
+        Returns:
+            Dict[str, Any]: 통계 결과 딕셔너리
+        """
+        if self.history_coll is None or self.error_coll is None:
+            await self.initialize()
+
+        # 1. 공통 필터 생성
+        match_filter = {"endpoint": endpoint}
+        time_query = {}
+        if start_time:
+            time_query["$gte"] = start_time
+        if end_time:
+            time_query["$lte"] = end_time
+        
+        if time_query:
+            match_filter["timestamp"] = time_query
+
+        # 2. count_documents 작업을 병렬로 실행
+        try:
+            # 성공 횟수와 에러 횟수 조회를 동시에 요청
+            success_task = self.history_coll.count_documents(match_filter)
+            error_task = self.error_coll.count_documents(match_filter)
+
+            # 두 작업이 끝날 때까지 대기
+            s_count, e_count = await asyncio.gather(success_task, error_task)
+
+            # 3. 결과 반환
+            return {
+                "endpoint": endpoint,
+                "total_success": s_count,
+                "total_errors": e_count,
+                "total_requests": s_count + e_count
+            }
+        
+        except Exception as e:
+            print(f"⚠️ get_endpoint_stats 집계 실패: {e}")
+            return {
+                "endpoint": endpoint,
+                "total_success": -1,
+                "total_errors": -1,
+                "total_requests": -1,
+                "error_message": str(e)
+            }
+
+    async def get_error_code_counts(
+        self,
+        endpoint: str,
+        start_time: datetime = None,
+        end_time: datetime = None
+    ) -> Dict[str, Any]:
+        """
+        [툴 2] 특정 엔드포인트의 에러 코드별 에러 횟수를 반환합니다.
+        (에러 컬렉션: self.error_coll 사용)
+        
+        Args:
+            endpoint (str): (필수) 조회할 엔드포인트
+            start_time (datetime, optional): (선택) 조회 시작 시간
+            end_time (datetime, optional): (선택) 조회 종료 시간
+        
+        Returns:
+            Dict[str, Any]: 집계 결과 딕셔너리
+        """
+        if self.error_coll is None:
+            await self.initialize()
+
+        # 1. 기본 필터: endpoint는 필수
+        match_filter = {'endpoint': endpoint}
+
+        # 2. 시간 필터 추가
+        time_query = {}
+        if start_time:
+            time_query["$gte"] = start_time
+        if end_time:
+            time_query["$lte"] = end_time
+        
+        if time_query:
+            match_filter['timestamp'] = time_query
+            
+        # 3. Aggregation Pipeline 정의 (에러 코드별 그룹핑)
+        pipeline = [
+            {'$match': match_filter},
+            {'$group': {'_id': '$error.status', 'count': {'$sum': 1}}},
+            {'$sort': {'count': DESCENDING}}
+        ]
+
+        try:
+            cursor = self.error_coll.aggregate(pipeline)
+            results = await cursor.to_list(length=None)
+            
+            return {
+                "endpoint": endpoint,
+                "error_details": results  # 예: [{'_id': 'E-401', 'count': 10}, ...]
+            }
+
+        except Exception as e:
+            print(f"⚠️ get_error_code_counts 집계 실패: {e}")
+            return {"endpoint": endpoint, "error_details": [], "error_message": str(e)}
 
 
     # async def delete_all_logs(self):

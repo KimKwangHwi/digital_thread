@@ -437,11 +437,64 @@ class MachineService:
         return await history_logger.get_top_params_for_endpoint(endpoint, limit, start_time, end_time)
     
     
+    async def get_endpoint_error_statistic(
+        self, 
+        endpoint: str, 
+        start_time: datetime = None, 
+        end_time: datetime = None
+        ) -> Dict[str, Any]:
+        """
+        [툴 4] 특정 엔드포인트에 대한 에러 통계 정보를 조회합니다.
+        
+        """
+        try:
+            task_stats = history_logger.get_endpoint_stats(
+                endpoint, start_time, end_time
+            )
+            task_details = history_logger.get_error_code_counts(
+                endpoint, start_time, end_time
+            )
+
+            # 2. asyncio.gather를 사용해 두 쿼리를 DB에 병렬로 실행
+            stats_result, details_result = await asyncio.gather(
+                task_stats, task_details
+            )
+
+            # 3. DB 쿼리 중 발생한 에러 처리
+            if stats_result.get("error_message"):
+                raise Exception(f"통계 조회 실패: {stats_result['error_message']}")
+            if details_result.get("error_message"):
+                raise Exception(f"에러 상세 조회 실패: {details_result['error_message']}")
+
+            # 4. 두 결과를 조합하여 최종 리포트 생성
+            total_requests = stats_result.get("total_requests", 0)
+            total_errors = stats_result.get("total_errors", 0)
+        
+            # 에러율 계산
+            error_rate = 0.0
+            if total_requests > 0:
+                error_rate = round((total_errors / total_requests) * 100, 2)
     
-    
-    
+            # 5. 최종 리포트 반환
+            return {
+                "endpoint": endpoint,
+                "total_requests": total_requests,
+                "total_success": stats_result.get("total_success", 0),
+                "total_errors": total_errors,
+                "error_rate_percent": error_rate,
+                "error_details": details_result.get("error_details", [])
+            }
+
+        except Exception as e:
+            print(f"⚠️ get_endpoint_error_report 실행 중 오류: {e}")
+            return {
+                "endpoint": endpoint,
+                "error": "리포트 생성에 실패했습니다.",
+                "error_message": str(e)
+            }
     
     # =============================================================================================================
+    
     
     
     
