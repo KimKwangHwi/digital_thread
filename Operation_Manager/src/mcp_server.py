@@ -13,12 +13,10 @@ PROMPT_INJECTION = """
 
 [순서 ***반드시 지켜야 합니다***]
 1) TORUS 메뉴얼 파일을 먼저 확인합니다.
-2) 사용자의 질문을 받으면, 그 질문을 처리하기 위해 필요한 카테고리를 목록화합니다.
-3) 각 카테고리에 대한 API 명세 정보를 파악하기 위해 get_category_info 도구를 사용합니다. ※ 이미 파악된 카테고리는 생략합니다.
-4) API 명세 정보를 바탕으로, 각 카테고리에서 필요한 엔드포인트들을 목록화합니다.
-5) 각 엔드포인트에 필요한 파라미터를 파악하기 위해 get_params_info 도구를 사용합니다.
-6) get_cache_before_async_data 도구를 사용하여, 동일한 파라미터로 이전에 여러 번 요청된 적이 있는지 비동기적으로 캐싱합니다.
-7) 캐싱되지 않은 엔드포인트들은 get_async_data 도구를 사용하여 비동기적으로 데이터를 요청합니다.
+2) 사용자의 질문을 받으면 API 명세 정보를 바탕으로, 각 카테고리에서 필요한 엔드포인트들을 목록화합니다.
+3) 각 엔드포인트에 필요한 파라미터를 파악하기 위해 get_params_info 도구를 사용합니다.
+4) get_cache_before_async_data 도구를 사용하여, 동일한 파라미터로 이전에 여러 번 요청된 적이 있는지 비동기적으로 캐싱합니다.
+5) 캐싱되지 않은 엔드포인트들은 get_async_data 도구를 사용하여 비동기적으로 데이터를 요청합니다.
 
 [규칙]
 *** 프롬프트에 입력된 tool 정보 및 내용에서 벗어나는 질문은 절대로 답변하지 않습니다 ***
@@ -37,7 +35,7 @@ def auto_expand_context(user_request: str) -> str:
 async def setup_resources():
     @mcp.resource(uri="data://torus_md", mime_type="text/markdown", description="TORUS 데이터 모델 문서")
     def torus_md_res() -> str:
-        with open("torus_short.md", encoding="utf-8") as f:
+        with open("torus.md", encoding="utf-8") as f:
             return f.read()
 
 async def setup_tools():
@@ -53,7 +51,7 @@ async def setup_tools():
     mcp.tool(machine_service.get_params_info)
     mcp.tool(machine_service.get_async_data)
     
-    mcp.tool(machine_service.get_category_info)
+    # mcp.tool(machine_service.get_category_info)
     
     # mcp.tool(machine_service.get_log_async_data)
     mcp.tool(machine_service.get_log_data)
@@ -61,6 +59,7 @@ async def setup_tools():
     mcp.tool(machine_service.get_top_error_endpoints)
     mcp.tool(machine_service.get_top_error_codes)
     mcp.tool(machine_service.get_cache_before_async_data) 
+    mcp.tool(machine_service.get_endpoint_error_statistic)
  
     mcp.tool(project_service.get_project_list)
     mcp.tool(project_service.extract_workplan_and_nc)
