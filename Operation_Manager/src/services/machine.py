@@ -505,8 +505,24 @@ class MachineService:
         machine_param = {"machine": machine, "toolArea": 1}
         numberOfRegisteredTools = await self.machine_repo.get_data("/machine/toolArea/numberOfRegisteredTools", machine_param)
 
-        if not (isinstance(numberOfRegisteredTools, int) and numberOfRegisteredTools > 0):
-            # 유효한 공구 개수가 없으면 빈 리스트 또는 에러 메시지 반환
+        # 1) 에러 응답이면 바로 리턴
+        if isinstance(numberOfRegisteredTools, dict) and numberOfRegisteredTools.get("__error__"):
+            return numberOfRegisteredTools
+
+        # 2) 정상 값 정제
+        # 리스트 형태인 경우 [17] → 17
+        if isinstance(numberOfRegisteredTools, list):
+            if numberOfRegisteredTools and isinstance(numberOfRegisteredTools[0], int):
+                numberOfRegisteredTools = numberOfRegisteredTools[0]
+            else:
+                return "유효한 공구 개수를 확인할 수 없습니다."
+
+        # 3) int가 아니면 잘못된 값
+        if not isinstance(numberOfRegisteredTools, int):
+            return "유효한 공구 개수를 확인할 수 없습니다."
+
+        # 4) 정상 값인데 0 이하
+        if numberOfRegisteredTools <= 0:
             return "등록된 공구가 없습니다."
 
         # 1. 모든 공구의 날(edge) 개수를 동시에 조회
@@ -531,7 +547,9 @@ class MachineService:
                 life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/restToolLife", {**base_params, "restToolLife": 1}))
                 life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/maxToolLife", {**base_params, "maxToolLife": 1}))
                 life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/toolLifeCount", {**base_params, "toolLifeCount": 1}))
-                life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/toolLifeAlarm", base_params))
+                base_params = {**{k: v for k, v in base_params.items() if k != "toolEdge"}, "toolLifeUnit": 1}
+                life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolLifeUnit", base_params))
+                #life_info_tasks.append(self.machine_repo.get_data("/machine/toolArea/registerTools/toolEdge/toolLife/toolLifeAlarm", base_params))
 
         if not life_info_tasks:
             return "등록된 공구의 날 정보가 없습니다."
@@ -552,18 +570,19 @@ class MachineService:
                 result_chunk = all_results[task_idx : task_idx + 4]
 
                 # API 에러 처리: 4개 중 하나라도 에러면 'error'로 표기, 아니면 값 할당
-                rest_life = result_chunk[0] if not result_chunk[0].get("__error__") else "error"
-                max_life = result_chunk[1] if not result_chunk[1].get("__error__") else "error"
-                life_count = result_chunk[2] if not result_chunk[2].get("__error__") else "error"
-                life_alarm = result_chunk[3] if not result_chunk[3].get("__error__") else "error"
-                
+                rest_life = result_chunk[0] if not (isinstance(result_chunk[0], dict) and result_chunk[0].get("__error__")) else "error"
+                max_life = result_chunk[1] if not (isinstance(result_chunk[1], dict) and result_chunk[1].get("__error__")) else "error"
+                life_count = result_chunk[2] if not (isinstance(result_chunk[2], dict) and result_chunk[2].get("__error__")) else "error"
+                #life_alarm = result_chunk[3] if not (isinstance(result_chunk[3], dict) and result_chunk[3].get("__error__")) else "error"
+                life_unit = result_chunk[3] if not (isinstance(result_chunk[3], dict) and result_chunk[3].get("__error__")) else "error"
                 toolLife_info.append({
                     "registerTools": tool_num,
                     "toolEdges": j,
                     "restToolLife": rest_life,
                     "maxToolLife": max_life,
                     "toolLifeCount": life_count,
-                    "toolLifeAlarm": life_alarm
+                    "toolLifeUnit": life_unit
+                    #"toolLifeAlarm": life_alarm
                 })
                 task_idx += 4 # 다음 결과 세트를 위해 인덱스를 4 증가
 
