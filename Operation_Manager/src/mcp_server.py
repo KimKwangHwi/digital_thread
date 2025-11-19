@@ -61,7 +61,7 @@ async def setup_tools():
     mcp.tool(machine_service.get_cache_before_async_data) 
     mcp.tool(machine_service.get_endpoint_error_statistic)
  
-    mcp.tool(machine_service.get_toolLife_info)
+    #mcp.tool(machine_service.get_toolLife_info)
  
     mcp.tool(project_service.get_project_list)
     mcp.tool(project_service.extract_workplan_and_nc)
