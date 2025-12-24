@@ -6,8 +6,6 @@ description: TORUS API를 사용한 CNC 장비 데이터 조회. 공통 워크�
 
 # Tool Core workflow
 
-# TORUS API Core Workflow
-
 모든 TORUS API 데이터 조회에 공통으로 적용되는 필수 워크플로우와 규칙을 정의합니다.
 
 ## 전제 조건

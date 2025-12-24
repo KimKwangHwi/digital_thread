@@ -93,6 +93,24 @@
 
     - 실시간 Redis 활용, 비동기 처리 최적화
 
+
+## 3-1. Operation Manager Server 중 MCP 관련 연구 (202507~202510)
+    ※ 2025년 7~10월 동안 Operation_Manager의 MCP 기능 연구 및 개발 진행
+    - 비동기 배치 방식으로 동작(자세한 내용은 업무보고 ppt 자료 확인)
+    - 기능 별로 테스트한 내용은 github repository의 각 브랜치 별로 확인 가능
+    (https://github.com/KimKwangHwi/digital_thread)
+    
+
+    Branch 종류
+    - test_tool_divide : TORUS MANUAL을 카테고리 별로 분할하고, 카테고리 별로 파이썬 함수를 선언하여 docString 안에 메뉴얼 작성
+    - test_resource : 비동기 배치 요청 방식의 tool 구현 (최종)
+    - test_mongo : mongoDB 공식 mcp server 테스트
+    - test_save_logic : LLM의 답변을 mongoDB에 저장하는 tool 구현 (최종)
+    - test_claude_skills : Claude의 SKILLS 기능을 활용한 데이터 조회 mcp tool
+
+
+
+
 ## 기타 운영 참고
 - 모든 주요 에러/예외는 REST 표준 응답(JSON, status code)으로 처리됩니다.
 
